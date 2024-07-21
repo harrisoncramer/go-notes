@@ -105,23 +105,30 @@ func (m *model) readEntryById(id int64) (*Entry, error) {
 		return nil, errors.New("DB Connection not established!")
 	}
 
-	rows, err := m.conn.Query("SELECT id, title, content FROM entries WHERE id = ?", id)
+	var entry Entry
+	err := m.conn.QueryRow("SELECT id, title, content FROM entries WHERE id = ?", id).Scan(&entry.Id, &entry.Title, &entry.Content)
 	if err != nil {
 		return nil, err
 	}
 
-	defer rows.Close()
+	return &entry, nil
+}
 
-	var results []Entry
-	for rows.Next() {
-		var id int64
-		var title string
-		var content string
-		if err := rows.Scan(&id, &title, &content); err != nil {
-			return nil, err
-		}
-		results = append(results, Entry{Title: title, Id: id, Content: content})
+func (m *model) renameEntry(id int64, title string) (*Entry, error) {
+	if m.conn == nil {
+		return nil, errors.New("DB Connection not established!")
 	}
 
-	return &results[0], nil
+	_, err := m.conn.Exec("UPDATE entries SET title = ? WHERE id = ?", title, id)
+	if err != nil {
+		return nil, err
+	}
+
+	var entry Entry
+	err = m.conn.QueryRow("SELECT id, title, content FROM entries WHERE id = ?", id).Scan(&entry.Id, &entry.Title, &entry.Content)
+	if err != nil {
+		return nil, err
+	}
+
+	return &entry, nil
 }

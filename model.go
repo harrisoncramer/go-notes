@@ -28,7 +28,10 @@ func (m model) Init() tea.Cmd {
 	return nil
 }
 
-var initialChoices = []Choice{{"Add Entry", 0}, {"Edit Entries", 1}}
+var addEntryChoice = Choice{"Add Entry", 0}
+var editEntryChoice = Choice{"Edit Entries", 1}
+var renameEntryChoice = Choice{"Rename Entry", 2}
+var initialChoices = []Choice{addEntryChoice, editEntryChoice, renameEntryChoice}
 
 func initialModel() model {
 
