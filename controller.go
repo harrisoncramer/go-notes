@@ -93,15 +93,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyMsg:
 			switch msg.String() {
 			case "ctrl+c":
-				return m, tea.Quit
+				return m.handleCtrlC()
 			case "up", "k":
-				if m.cursor.idx > 0 {
-					m.cursor.idx--
-				}
+				return m.handleUpKey()
 			case "down", "j":
-				if m.cursor.idx < len(m.choices)-1 {
-					m.cursor.idx++
-				}
+				return m.handleDownKey()
 			case "enter", " ":
 				choice := m.choices[m.cursor.idx]
 				switch choice.Id {
@@ -194,13 +190,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "ctrl+c":
 				return m, tea.Quit
 			case "up", "k":
-				if m.cursor.idx > 0 {
-					m.cursor.idx--
-				}
+				return m.handleUpKey()
 			case "down", "j":
-				if m.cursor.idx < len(m.choices)-1 {
-					m.cursor.idx++
-				}
+				return m.handleDownKey()
 			case "enter", " ":
 				choice := m.choices[m.cursor.idx]
 				m.currentEntryId = choice.Id
@@ -223,13 +215,9 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "ctrl+c":
 				return m, tea.Quit
 			case "up", "k":
-				if m.cursor.idx > 0 {
-					m.cursor.idx--
-				}
+				return m.handleUpKey()
 			case "down", "j":
-				if m.cursor.idx < len(m.choices)-1 {
-					m.cursor.idx++
-				}
+				return m.handleDownKey()
 			case "enter", " ":
 				choice := m.choices[m.cursor.idx]
 				if m.prompt.Id == CHOOSE_EDIT {
@@ -281,4 +269,23 @@ func (m *model) returnHome() {
 	m.choices = initialChoices
 	m.currentEntryId = -1
 	m.cursor.idx = 0
+}
+
+func (m *model) handleCtrlC() (model, tea.Cmd) {
+	return *m, tea.Quit
+}
+
+func (m *model) handleUpKey() (model, tea.Cmd) {
+	if m.cursor.idx > 0 {
+		m.cursor.idx--
+	}
+	return *m, nil
+}
+
+func (m *model) handleDownKey() (model, tea.Cmd) {
+	if m.cursor.idx < len(m.choices)-1 {
+		m.cursor.idx++
+	}
+
+	return *m, nil
 }
