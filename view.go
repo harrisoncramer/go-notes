@@ -19,7 +19,7 @@ func (m model) View() string {
 			"%s:\n\n%s\n\n",
 			"Add Entry",
 			m.textInput.View())
-	case "main":
+	case mainView:
 		s += m.mainRenderer(s)
 	}
 
@@ -27,7 +27,7 @@ func (m model) View() string {
 	return s
 }
 
-func (m *model) mainRenderer(s string) string {
+func (m model) mainRenderer(s string) string {
 	for i, choice := range m.viewData.choices {
 		prefix := " "
 		if m.cursor.idx == i {

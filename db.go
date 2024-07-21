@@ -8,24 +8,23 @@ import (
 	"os/user"
 )
 
-func (m model) initDB() error {
+func initDB(m model) (*sql.DB, error) {
 	user, err := user.Current()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if len(os.Args) < 2 {
-		return errors.New("Must provide a database name!")
+		return nil, errors.New("Must provide a database name!")
 	}
 
 	m.dbName = os.Args[1]
 
 	db, err := sql.Open("sqlite3", fmt.Sprintf("%s/%s.db", user.HomeDir, m.dbName))
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	m.conn = db
 	_, err = db.Exec(`
       CREATE TABLE IF NOT EXISTS entries (
         id integer primary key autoincrement,
@@ -34,11 +33,11 @@ func (m model) initDB() error {
       );
     `)
 
-	return err
+	return db, err
 }
 
 /* Reads all entries from the SQL database into the model as choices */
-func (m model) readAllData() error {
+func (m *model) readAllData() error {
 	if m.conn == nil {
 		return errors.New("DB Connection not established!")
 	}
@@ -69,7 +68,7 @@ func (m model) readAllData() error {
 }
 
 /* Adds a record to the SQL database */
-func (m model) createEntry(data Entry) (int64, error) {
+func (m *model) createEntry(data Entry) (int64, error) {
 	if m.conn == nil {
 		return 0, errors.New("DB Connection not established!")
 	}
@@ -106,7 +105,7 @@ func (m model) readEntryById(id int64) (*Entry, error) {
 	return &entry, nil
 }
 
-func (m model) renameEntry(id int64, title string) (*Entry, error) {
+func (m *model) renameEntry(id int64, title string) (*Entry, error) {
 	if m.conn == nil {
 		return nil, errors.New("DB Connection not established!")
 	}

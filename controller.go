@@ -28,7 +28,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 /* The main controller is the root of the application */
-func (m *model) mainController(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m model) mainController(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -52,7 +52,8 @@ func (m *model) mainController(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m *model) createEntryController(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m model) createEntryController(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
@@ -76,17 +77,14 @@ func (m *model) createEntryController(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyCtrlC:
 			return m, tea.Quit
 		}
-
-		_, cmd := m.textInput.Update(msg)
-		return m, cmd
+		m.textInput, cmd = m.textInput.Update(msg)
 	}
-
-	return m, nil
+	return m, cmd
 }
 
 /**** Common Helpers ****/
-func (m *model) handleCtrlC() (model, tea.Cmd) {
-	return *m, tea.Quit
+func (m model) handleCtrlC() (model, tea.Cmd) {
+	return m, tea.Quit
 }
 
 func (m *model) handleUpKey() {
