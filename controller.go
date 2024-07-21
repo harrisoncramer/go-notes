@@ -74,7 +74,10 @@ func (m model) View() string {
 		m.prompt.Text += "Press <esc> to go back\n"
 		return m.prompt.Text
 	case EDITOR:
-		return "What would you like to do with this entry?\n\nContinue editing: 'e'\nSave Changes: 'w'\nQuit: 'q'\n"
+		m.prompt.Text = "Press 'w' to save this entry, or 'e' to continue editing\n\n"
+		m.prompt.Text += "Press <C-c> to quit (no save)\n"
+		m.prompt.Text += "Press <esc> to go back (no save)\n"
+		return m.prompt.Text
 	case NO_ENTRIES:
 		return m.prompt.Text
 	}
@@ -135,7 +138,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, tea.Quit
 				}
 				m.renameEntry(m.currentEntryId, content)
-				m.prompt = chooseRenamePrompt
+				m.textInput.SetValue("")
+				m.returnHome()
 			case tea.KeyEsc:
 				m.returnHome()
 			case tea.KeyCtrlC:
@@ -164,6 +168,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.cursor.idx = 0
 				m.currentEntryId = id
 				m.prompt = editEntryPrompt
+				m.textInput.SetValue("")
 				return m.editEntry()
 			case tea.KeyEsc:
 				m.returnHome()
@@ -239,14 +244,22 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case NO_ENTRIES:
 		return m, tea.Quit
 	case EDITOR:
+		if keyMsg, ok := msg.(tea.KeyMsg); ok {
+			if keyMsg.Type == tea.KeyEsc {
+				m.returnHome()
+				return m, nil
+			}
+		}
 		switch msg := msg.(type) {
 		case tea.KeyMsg:
 			switch msg.String() {
 			case "e":
 				return m.editEntry()
 			case "w":
-				return m, m.persistEntry()
-			case "ctrl+c", "q":
+				m.persistEntry()
+				m.returnHome()
+				return m, nil
+			case "ctrl+c":
 				return m, tea.Quit
 			}
 		case editorFinishedMsg:
