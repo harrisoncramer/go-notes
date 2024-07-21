@@ -17,11 +17,13 @@ type model struct {
 	conn                 *sql.DB
 	err                  error
 	entries              []Entry
-	prompt               Prompt
+	controller           Controller
+	QuitMsg              tea.QuitMsg
 	textInput            textinput.Model
 	dbName               string
 	currentEntryId       int64
 	currentEntryFilePath string
+	goHome               bool
 }
 
 func (m model) Init() tea.Cmd {
@@ -40,10 +42,16 @@ func initialModel() model {
 		choices: initialChoices,
 		err:     nil,
 		entries: []Entry{},
+		controller: Controller{
+			Text:   "",
+			Id:     MAIN,
+			render: mainController.render,
+			update: mainController.update,
+		},
 	}
 
 	m.initDB()
-	m.prompt = Prompt{Text: m.dbName + "\n\n", Id: MAIN}
+	m.controller.Text = m.dbName + "\n\n"
 
 	/* Text input component */
 	ti := textinput.New()
