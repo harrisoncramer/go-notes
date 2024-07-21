@@ -8,21 +8,21 @@ import (
 	"os/user"
 )
 
-func initDB(m model) (*sql.DB, error) {
+func (m *model) initDB() error {
 	user, err := user.Current()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if len(os.Args) < 2 {
-		return nil, errors.New("Must provide a database name!")
+		return errors.New("Must provide a database name!")
 	}
 
 	m.dbName = os.Args[1]
 
 	db, err := sql.Open("sqlite3", fmt.Sprintf("%s/%s.db", user.HomeDir, m.dbName))
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	_, err = db.Exec(`
@@ -33,7 +33,8 @@ func initDB(m model) (*sql.DB, error) {
       );
     `)
 
-	return db, err
+	m.conn = db
+	return err
 }
 
 /* Reads all entries from the SQL database into the model as choices */
