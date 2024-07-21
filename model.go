@@ -71,6 +71,7 @@ func initialModel() model {
 		},
 		err:     nil,
 		entries: []Entry{},
+		view:    mainView,
 	}
 
 	/* Text input component */

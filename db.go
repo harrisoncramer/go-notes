@@ -8,24 +8,21 @@ import (
 	"os/user"
 )
 
-func (m *model) initDB() {
+func (m model) initDB() error {
 	user, err := user.Current()
 	if err != nil {
-		m.err = err
-		return
+		return err
 	}
 
 	if len(os.Args) < 2 {
-		m.err = errors.New("Must provide a database name!")
-		return
+		return errors.New("Must provide a database name!")
 	}
 
 	m.dbName = os.Args[1]
 
 	db, err := sql.Open("sqlite3", fmt.Sprintf("%s/%s.db", user.HomeDir, m.dbName))
 	if err != nil {
-		m.err = err
-		return
+		return err
 	}
 
 	m.conn = db
@@ -37,21 +34,18 @@ func (m *model) initDB() {
       );
     `)
 
-	m.err = err
-
+	return err
 }
 
-/* Reads all entries from the SQL database into the model */
-func (m *model) readAllData() {
+/* Reads all entries from the SQL database into the model as choices */
+func (m model) readAllData() error {
 	if m.conn == nil {
-		m.err = errors.New("DB Connection not established!")
-		return
+		return errors.New("DB Connection not established!")
 	}
 
 	rows, err := m.conn.Query("SELECT id, title FROM entries")
 	if err != nil {
-		m.err = err
-		return
+		return err
 	}
 
 	defer rows.Close()
@@ -61,21 +55,21 @@ func (m *model) readAllData() {
 		var id int64
 		var title string
 		if err := rows.Scan(&id, &title); err != nil {
-			m.err = err
-			return
+			return err
 		}
 		results = append(results, Entry{Title: title, Id: id})
 	}
 
 	m.entries = results
-	m.choices = []Choice{}
-	for _, entry := range m.entries {
-		m.choices = append(m.choices, Choice{Text: entry.Title, Id: entry.Id})
+	for _, entry := range results {
+		m.viewData.choices = append(m.viewData.choices, Choice{Text: entry.Title, Id: entry.Id})
 	}
+
+	return nil
 }
 
 /* Adds a record to the SQL database */
-func (m *model) createEntry(data Entry) (int64, error) {
+func (m model) createEntry(data Entry) (int64, error) {
 	if m.conn == nil {
 		return 0, errors.New("DB Connection not established!")
 	}
@@ -98,7 +92,7 @@ func (m *model) updateEntryText(id int64, text string) error {
 	return err
 }
 
-func (m *model) readEntryById(id int64) (*Entry, error) {
+func (m model) readEntryById(id int64) (*Entry, error) {
 	if m.conn == nil {
 		return nil, errors.New("DB Connection not established!")
 	}
@@ -112,7 +106,7 @@ func (m *model) readEntryById(id int64) (*Entry, error) {
 	return &entry, nil
 }
 
-func (m *model) renameEntry(id int64, title string) (*Entry, error) {
+func (m model) renameEntry(id int64, title string) (*Entry, error) {
 	if m.conn == nil {
 		return nil, errors.New("DB Connection not established!")
 	}

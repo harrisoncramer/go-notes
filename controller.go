@@ -1,31 +1,8 @@
 package main
 
 import (
-	"fmt"
-
 	tea "github.com/charmbracelet/bubbletea"
 )
-
-const otherView = "other"
-
-/* The view function is responsible for rendering different screens */
-func (m model) View() string {
-	if m.err != nil {
-		return m.err.Error()
-	}
-
-	s := ""
-
-	switch m.view {
-	case otherView:
-		s += "Other View\n"
-	default:
-		s += m.mainRenderer(s)
-	}
-
-	s += "\nPress <C-c> to quit\n"
-	return s
-}
 
 /* The update function is responsible for getting a message from the Init function, and updating state in the model */
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -37,10 +14,17 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.String() {
 		case "ctrl+c":
 			return m.handleCtrlC()
+		default:
+			switch m.view {
+			case addEntryView:
+				return m.createEntryController(msg)
+			default:
+				return m.mainController(msg)
+			}
 		}
 	}
 
-	return m.mainController(msg)
+	return m, nil
 }
 
 /* The main controller is the root of the application */
@@ -56,30 +40,51 @@ func (m *model) mainController(msg tea.Msg) (tea.Model, tea.Cmd) {
 			choice := m.viewData.choices[m.cursor.idx]
 			switch choice.Text {
 			case "Add Entry":
-				return m.changeView(otherView)
+				m.changeView(addEntryView)
 			case "Edit Entry":
-				return m.changeView(otherView)
+				m.changeView(addEntryView)
 			case "Rename Entry":
-				return m.changeView(otherView)
+				m.changeView(addEntryView)
 			}
 		}
 	}
 
-	return m, nil /* Return the new model state */
+	return m, nil
 }
 
-func (m *model) mainRenderer(s string) string {
-	for i, choice := range m.viewData.choices {
-		prefix := " "
-		if m.cursor.idx == i {
-			prefix = ">"
+func (m *model) createEntryController(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.Type {
+		case tea.KeyEnter:
+			content := m.textInput.Value()
+			if content == "" {
+				return m, tea.Quit
+			}
+			id, err := m.createEntry(Entry{Title: content, Content: ""})
+			if err != nil {
+				m.err = err
+				return m, nil
+			}
+			m.currentEntryId = id
+			m.textInput.SetValue("")
+			return m.editEntry() // TODO: Fix
+		case tea.KeyEsc:
+			m.changeView(mainView)
+			m.viewData.choices = initialChoices
+			return m, nil
+		case tea.KeyCtrlC:
+			return m, tea.Quit
 		}
-		s += fmt.Sprintf("%s %s\n", prefix, choice.Text)
+
+		_, cmd := m.textInput.Update(msg)
+		return m, cmd
 	}
 
-	return s
+	return m, nil
 }
 
+/**** Common Helpers ****/
 func (m *model) handleCtrlC() (model, tea.Cmd) {
 	return *m, tea.Quit
 }
@@ -96,8 +101,8 @@ func (m *model) handleDownKey() {
 	}
 }
 
-func (m *model) changeView(view string) (tea.Model, tea.Cmd) {
+func (m *model) changeView(view string) {
+	m.cursor.idx = 0
 	m.viewData = ViewData{}
 	m.view = view
-	return m, nil
 }
