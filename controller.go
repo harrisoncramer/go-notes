@@ -35,7 +35,7 @@ const EDITOR = "editor"
 const CHOOSE_RENAME = "choose_rename"
 const RENAME_ENTRY = "rename_entry"
 
-/* The view function is responsible for rendering different screens depending on the Prompt ID */
+/* The view function is responsible for rendering different screens */
 func (m model) View() string {
 	if m.err != nil {
 		return m.err.Error()
@@ -80,36 +80,37 @@ var mainPrompt = Prompt{
 		case tea.KeyMsg:
 			switch msg.String() {
 			case "ctrl+c":
-				return m.handleCtrlC()
+				m.handleCtrlC()
 			case "up", "k":
-				return m.handleUpKey()
+				m.handleUpKey()
 			case "down", "j":
-				return m.handleDownKey()
+				m.handleDownKey()
 			case "enter", " ":
 				choice := m.choices[m.cursor.idx]
 				switch choice.Id {
 				case addEntryChoice.Id:
-					m.prompt = addEntryPrompt
+					m.switchView(addEntryPrompt)
 				case editEntryChoice.Id:
 					m.cursor.idx = 0
 					m.readAllData()
 					if len(m.choices) > 0 {
-						m.prompt = chooseEntryToReadPrompt
+						m.switchView(chooseEntryToReadPrompt)
 					} else {
-						m.prompt = noEntriesFoundPrompt
+						m.switchView(noEntriesFoundPrompt)
 					}
 				case renameEntryChoice.Id:
 					m.cursor.idx = 0
 					m.readAllData()
 					if len(m.choices) > 0 {
-						m.prompt = chooseRenamePrompt
+						m.switchView(chooseRenamePrompt)
 					} else {
-						m.prompt = noEntriesFoundPrompt
+						m.switchView(noEntriesFoundPrompt)
 					}
 				}
 			}
 		}
-		return m, nil
+
+		return m, nil /* Return the new model state */
 	},
 }
 
@@ -222,11 +223,11 @@ var chooseEntryToReadPrompt = Prompt{
 		case tea.KeyMsg:
 			switch msg.String() {
 			case "ctrl+c":
-				return m, tea.Quit
+				return m.handleCtrlC()
 			case "up", "k":
-				return m.handleUpKey()
+				m.handleUpKey()
 			case "down", "j":
-				return m.handleDownKey()
+				m.handleDownKey()
 			case "enter", " ":
 				choice := m.choices[m.cursor.idx]
 				if m.prompt.Id == CHOOSE_EDIT {
@@ -267,11 +268,11 @@ var chooseRenamePrompt = Prompt{
 		case tea.KeyMsg:
 			switch msg.String() {
 			case "ctrl+c":
-				return m, tea.Quit
+				return m.handleCtrlC()
 			case "up", "k":
-				return m.handleUpKey()
+				m.handleUpKey()
 			case "down", "j":
-				return m.handleDownKey()
+				m.handleDownKey()
 			case "enter", " ":
 				choice := m.choices[m.cursor.idx]
 				m.currentEntryId = choice.Id
@@ -341,17 +342,18 @@ func (m *model) handleCtrlC() (model, tea.Cmd) {
 	return *m, tea.Quit
 }
 
-func (m *model) handleUpKey() (model, tea.Cmd) {
+func (m *model) handleUpKey() {
 	if m.cursor.idx > 0 {
 		m.cursor.idx--
 	}
-	return *m, nil
 }
 
-func (m *model) handleDownKey() (model, tea.Cmd) {
+func (m *model) handleDownKey() {
 	if m.cursor.idx < len(m.choices)-1 {
 		m.cursor.idx++
 	}
+}
 
-	return *m, nil
+func (m *model) switchView(p Prompt) {
+	m.prompt = p
 }
