@@ -15,7 +15,7 @@ type Entry struct {
 type renderFunction func(m model) string
 type updateFunction func(m model, msg tea.Msg) (tea.Model, tea.Cmd)
 
-type Prompt struct {
+type Controller struct {
 	Text   string
 	Id     string
 	render renderFunction
@@ -41,38 +41,40 @@ func (m model) View() string {
 		return m.err.Error()
 	}
 
-	if m.prompt.Id == "" {
-		m.prompt = mainPrompt
-		m.prompt.Text = m.dbName + "\n\n"
+	if m.controller.Id == MAIN {
+		m.controller = mainController
+		m.controller.Text = m.dbName + "\n\n"
 	}
 
-	return m.prompt.render(m)
+	return m.controller.render(m)
 }
 
-/* The update function is responsible for updating state in the model and choosing a prompt */
+/* The update function is responsible for updating state in the model and choosing a controller */
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-
-	if m.prompt.Id == "" {
-		m.prompt = mainPrompt
-		m.prompt.Text = m.dbName + "\n\n"
+	if m.err != nil {
+		return m, tea.Quit
 	}
 
-	return m.prompt.update(m, msg)
+	if m.controller.Id == MAIN {
+		m.controller = mainController
+		m.controller.Text = m.dbName + "\n\n"
+	}
+
+	return m.controller.update(m, msg)
 }
 
-/* The main prompt is the root of the application */
-var mainPrompt = Prompt{
-	Text: "",
+/* The main controller is the root of the application */
+var mainController = Controller{
 	render: func(m model) string {
 		for i, choice := range m.choices {
 			prefix := " "
 			if m.cursor.idx == i {
 				prefix = ">"
 			}
-			m.prompt.Text += fmt.Sprintf("%s %s\n", prefix, choice.Text)
+			m.controller.Text += fmt.Sprintf("%s %s\n", prefix, choice.Text)
 		}
-		m.prompt.Text += "\nPress <C-c> to quit\n"
-		return m.prompt.Text
+		m.controller.Text += "\nPress <C-c> to quit\n"
+		return m.controller.Text
 	},
 	update: func(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg := msg.(type) {
@@ -88,22 +90,22 @@ var mainPrompt = Prompt{
 				choice := m.choices[m.cursor.idx]
 				switch choice.Id {
 				case addEntryChoice.Id:
-					m.switchView(addEntryPrompt)
+					m.switchView(addEntryController)
 				case editEntryChoice.Id:
 					m.cursor.idx = 0
 					m.readAllData()
 					if len(m.choices) > 0 {
-						m.switchView(chooseEntryToReadPrompt)
+						m.switchView(chooseEntryToReadController)
 					} else {
-						m.switchView(noEntriesFoundPrompt)
+						m.switchView(noEntriesFoundController)
 					}
 				case renameEntryChoice.Id:
 					m.cursor.idx = 0
 					m.readAllData()
 					if len(m.choices) > 0 {
-						m.switchView(chooseRenamePrompt)
+						m.switchView(chooseRenameController)
 					} else {
-						m.switchView(noEntriesFoundPrompt)
+						m.switchView(noEntriesFoundController)
 					}
 				}
 			}
@@ -114,13 +116,13 @@ var mainPrompt = Prompt{
 }
 
 /* Responsible for adding entries to the database */
-var addEntryPrompt = Prompt{
+var addEntryController = Controller{
 	Text: "Entry Name",
 	Id:   ADD_ENTRY,
 	render: func(m model) string {
 		return fmt.Sprintf(
 			"%s:\n\n%s\n\n%s",
-			m.prompt.Text,
+			m.controller.Text,
 			m.textInput.View(),
 			"Press <C-c> to quit.\nPress <esc> to go back",
 		) + "\n"
@@ -142,7 +144,7 @@ var addEntryPrompt = Prompt{
 
 				m.cursor.idx = 0
 				m.currentEntryId = id
-				m.prompt = editEntryPrompt
+				m.controller = editEntryController
 				m.textInput.SetValue("")
 				return m.editEntry()
 			case tea.KeyEsc:
@@ -160,12 +162,12 @@ var addEntryPrompt = Prompt{
 	},
 }
 
-var renameEntryPrompt = Prompt{
+var renameEntryController = Controller{
 	Text: fmt.Sprintf("New Entry Name"), Id: RENAME_ENTRY,
 	render: func(m model) string {
 		return fmt.Sprintf(
 			"%s:\n\n%s\n\n%s",
-			m.prompt.Text,
+			m.controller.Text,
 			m.textInput.View(),
 			"Press <C-c> to quit.\nPress <esc> to go back",
 		) + "\n"
@@ -195,7 +197,7 @@ var renameEntryPrompt = Prompt{
 	},
 }
 
-var chooseEntryToReadPrompt = Prompt{
+var chooseEntryToReadController = Controller{
 	Text: fmt.Sprintf("Which entry do you want to edit?\n\n"),
 	Id:   CHOOSE_EDIT,
 	render: func(m model) string {
@@ -204,11 +206,11 @@ var chooseEntryToReadPrompt = Prompt{
 			if m.cursor.idx == i {
 				prefix = ">"
 			}
-			m.prompt.Text += fmt.Sprintf("%s %s\n", prefix, choice.Text)
+			m.controller.Text += fmt.Sprintf("%s %s\n", prefix, choice.Text)
 		}
-		m.prompt.Text += "\nPress <C-c> to quit\n"
-		m.prompt.Text += "Press <esc> to go back\n"
-		return m.prompt.Text
+		m.controller.Text += "\nPress <C-c> to quit\n"
+		m.controller.Text += "Press <esc> to go back\n"
+		return m.controller.Text
 	},
 	update: func(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 		if keyMsg, ok := msg.(tea.KeyMsg); ok {
@@ -229,9 +231,9 @@ var chooseEntryToReadPrompt = Prompt{
 				m.handleDownKey()
 			case "enter", " ":
 				choice := m.choices[m.cursor.idx]
-				if m.prompt.Id == CHOOSE_EDIT {
+				if m.controller.Id == CHOOSE_EDIT {
 					m.currentEntryId = choice.Id
-					m.prompt = editEntryPrompt
+					m.controller = editEntryController
 					return m.editEntry()
 				}
 			}
@@ -240,7 +242,7 @@ var chooseEntryToReadPrompt = Prompt{
 	},
 }
 
-var chooseRenamePrompt = Prompt{
+var chooseRenameController = Controller{
 	Text: fmt.Sprintf("Which entry do you want to rename?\n\n"),
 	Id:   CHOOSE_RENAME,
 	render: func(m model) string {
@@ -249,11 +251,11 @@ var chooseRenamePrompt = Prompt{
 			if m.cursor.idx == i {
 				prefix = ">"
 			}
-			m.prompt.Text += fmt.Sprintf("%s %s\n", prefix, choice.Text)
+			m.controller.Text += fmt.Sprintf("%s %s\n", prefix, choice.Text)
 		}
-		m.prompt.Text += "\nPress <C-c> to quit\n"
-		m.prompt.Text += "Press <esc> to go back\n"
-		return m.prompt.Text
+		m.controller.Text += "\nPress <C-c> to quit\n"
+		m.controller.Text += "Press <esc> to go back\n"
+		return m.controller.Text
 	},
 	update: func(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 		if keyMsg, ok := msg.(tea.KeyMsg); ok {
@@ -276,30 +278,30 @@ var chooseRenamePrompt = Prompt{
 				choice := m.choices[m.cursor.idx]
 				m.currentEntryId = choice.Id
 				m.textInput.Placeholder = choice.Text
-				m.prompt = renameEntryPrompt
+				m.controller = renameEntryController
 			}
 		}
 		return m, nil
 	},
 }
 
-var noEntriesFoundPrompt = Prompt{
+var noEntriesFoundController = Controller{
 	Text:   "No entries found!\n\n",
 	Id:     NO_ENTRIES,
-	render: func(m model) string { return m.prompt.Text },
+	render: func(m model) string { return m.controller.Text },
 	update: func(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Quit
 	},
 }
 
-var editEntryPrompt = Prompt{
+var editEntryController = Controller{
 	Text: "",
 	Id:   EDITOR,
 	render: func(m model) string {
-		m.prompt.Text = "Press 'w' to save this entry, or 'e' to continue editing\n\n"
-		m.prompt.Text += "Press <C-c> to quit (no save)\n"
-		m.prompt.Text += "Press <esc> to go back (no save)\n"
-		return m.prompt.Text
+		m.controller.Text = "Press 'w' to save this entry, or 'e' to continue editing\n\n"
+		m.controller.Text += "Press <C-c> to quit (no save)\n"
+		m.controller.Text += "Press <esc> to go back (no save)\n"
+		return m.controller.Text
 	},
 	update: func(m model, msg tea.Msg) (tea.Model, tea.Cmd) {
 		if keyMsg, ok := msg.(tea.KeyMsg); ok {
@@ -332,7 +334,7 @@ var editEntryPrompt = Prompt{
 }
 
 func (m *model) returnHome() {
-	m.prompt = Prompt{}
+	m.controller.Id = MAIN
 	m.choices = initialChoices
 	m.currentEntryId = -1
 	m.cursor.idx = 0
@@ -354,6 +356,6 @@ func (m *model) handleDownKey() {
 	}
 }
 
-func (m *model) switchView(p Prompt) {
-	m.prompt = p
+func (m *model) switchView(p Controller) {
+	m.controller = p
 }
