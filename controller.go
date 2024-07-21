@@ -7,6 +7,8 @@ import (
 /* The update function is responsible for getting a message from the Init function, and updating state in the model */
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
+	case editorFinishedMsg:
+		return m, m.persistEntry()
 	case errMsg:
 		m.err = msg
 		return m, nil
