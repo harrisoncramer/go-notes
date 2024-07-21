@@ -2,7 +2,6 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
 	"os"
 
 	"github.com/charmbracelet/bubbles/textinput"
@@ -76,19 +75,14 @@ func initialModel() model {
 	ti.Width = 20
 	m.textInput = ti
 
-	db, err := initDB(m)
-
+	err := m.initDB()
 	if err != nil {
 		m.err = err
 	}
 
-	if db == nil {
+	if m.conn == nil {
 		os.Exit(1)
 	}
-
-	m.conn = db
-
-	fmt.Println(m.conn)
 
 	return m
 }
