@@ -20,6 +20,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch m.view {
 			case addEntryView:
 				return m.createEntryController(msg)
+			case editEntryView:
+				return m.editEntryViewController(msg)
 			default:
 				return m.mainController(msg)
 			}
@@ -44,7 +46,7 @@ func (m model) mainController(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "Add Entry":
 				m.changeView(addEntryView)
 			case "Edit Entry":
-				m.changeView(addEntryView)
+				m.changeView(editEntryView)
 			case "Rename Entry":
 				m.changeView(addEntryView)
 			}
@@ -71,7 +73,7 @@ func (m model) createEntryController(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			m.currentEntryId = id
 			m.textInput.SetValue("")
-			return m.editEntry() // TODO: Fix
+			return m.editEntry()
 		case tea.KeyEsc:
 			m.changeView(mainView)
 			m.viewData.choices = initialChoices
@@ -82,6 +84,10 @@ func (m model) createEntryController(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.textInput, cmd = m.textInput.Update(msg)
 	}
 	return m, cmd
+}
+
+func (m model) editEntryViewController(msg tea.Msg) (tea.Model, tea.Cmd) {
+	return m, nil
 }
 
 /**** Common Helpers ****/

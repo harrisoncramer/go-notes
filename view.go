@@ -3,6 +3,7 @@ package main
 import "fmt"
 
 const addEntryView = "addEntry"
+const editEntryView = "editEntry"
 const mainView = "main"
 
 /* The view function is responsible for rendering different screens */
@@ -19,6 +20,8 @@ func (m model) View() string {
 			"%s:\n\n%s\n\n",
 			"Add Entry",
 			m.textInput.View())
+	case editEntryView:
+		return "Editing..."
 	case mainView:
 		s += m.mainRenderer(s)
 	}
