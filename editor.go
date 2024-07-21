@@ -72,5 +72,5 @@ func (m *model) persistEntry() tea.Cmd {
 		return nil
 	}
 
-	return nil
+	return tea.Quit
 }
