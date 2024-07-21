@@ -35,6 +35,33 @@ const EDITOR = "editor"
 const CHOOSE_RENAME = "choose_rename"
 const RENAME_ENTRY = "rename_entry"
 
+/* The view function is responsible for rendering different screens depending on the Prompt ID */
+func (m model) View() string {
+	if m.err != nil {
+		return m.err.Error()
+	}
+
+	if m.goHome {
+		m.goHome = false
+		m.prompt = mainPrompt
+		m.prompt.Text = m.dbName + "\n\n"
+	}
+
+	return m.prompt.render(m)
+}
+
+/* The update function is responsible for updating state in the model and choosing a prompt */
+func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	if m.goHome {
+		m.goHome = false
+		m.prompt = mainPrompt
+		m.prompt.Text = m.dbName + "\n\n"
+	}
+
+	return m.prompt.update(m, msg)
+}
+
+/* The main prompt is the root of the application */
 var mainPrompt = Prompt{
 	Text: "",
 	render: func(m model) string {
@@ -301,30 +328,6 @@ var editEntryPrompt = Prompt{
 		}
 		return m, nil
 	},
-}
-
-/* The view function is responsible for rendering different screens depending on the Prompt ID */
-func (m model) View() string {
-	if m.err != nil {
-		return m.err.Error()
-	}
-
-	if m.goHome {
-		m.goHome = false
-		return mainPrompt.render(m)
-	}
-
-	return m.prompt.render(m)
-}
-
-/* The update function is responsible for updating state in the model and choosing a prompt */
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if m.goHome {
-		m.goHome = false
-		return mainPrompt.update(m, msg)
-	}
-
-	return m.prompt.update(m, msg)
 }
 
 func (m *model) returnHome() {
