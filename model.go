@@ -2,6 +2,8 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
+	"os"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -42,14 +44,7 @@ func (e errMsg) Error() string {
 }
 
 func (m model) Init() tea.Cmd {
-	return func() tea.Msg {
-		err := m.initDB()
-		if err != nil {
-			return errMsg{err}
-		}
-
-		return nil
-	}
+	return nil
 }
 
 type Choice struct {
@@ -65,7 +60,6 @@ var initialChoices = []Choice{addEntryChoice, editEntryChoice, renameEntryChoice
 func initialModel() model {
 
 	m := model{
-		conn: nil,
 		viewData: ViewData{
 			choices: initialChoices,
 		},
@@ -81,6 +75,20 @@ func initialModel() model {
 	ti.CharLimit = 156
 	ti.Width = 20
 	m.textInput = ti
+
+	db, err := initDB(m)
+
+	if err != nil {
+		m.err = err
+	}
+
+	if db == nil {
+		os.Exit(1)
+	}
+
+	m.conn = db
+
+	fmt.Println(m.conn)
 
 	return m
 }
