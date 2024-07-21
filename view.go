@@ -15,18 +15,23 @@ func (m model) View() string {
 	s := ""
 
 	switch m.view {
-	case addEntryView:
-		s += fmt.Sprintf(
-			"%s:\n\n%s\n\n",
-			"Add Entry",
-			m.textInput.View())
-	case editEntryView:
-		return "Editing..."
 	case mainView:
 		s += m.mainRenderer(s)
+	case addEntryView:
+		s += m.addEntryRenderer(s)
+	case editEntryView:
+		s += m.editEntryRenderer(s)
 	}
 
 	s += "\nPress <C-c> to quit\n"
+	return s
+}
+
+func (m model) addEntryRenderer(s string) string {
+	s += fmt.Sprintf(
+		"%s:\n\n%s\n\n",
+		"Add Entry",
+		m.textInput.View())
 	return s
 }
 
@@ -40,4 +45,8 @@ func (m model) mainRenderer(s string) string {
 	}
 
 	return s
+}
+
+func (m model) editEntryRenderer(s string) string {
+	return "Editing..."
 }
