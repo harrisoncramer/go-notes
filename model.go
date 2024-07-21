@@ -2,7 +2,7 @@ package main
 
 import (
 	"database/sql"
-	"os"
+	"errors"
 
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
@@ -81,7 +81,7 @@ func initialModel() model {
 	}
 
 	if m.conn == nil {
-		os.Exit(1)
+		m.err = errors.New("DB Connection not established!")
 	}
 
 	return m
