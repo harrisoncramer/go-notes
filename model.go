@@ -11,47 +11,67 @@ type Cursor struct {
 	idx int
 }
 
+type ViewData struct {
+	choices []Choice
+}
+
+type Entry struct {
+	Id      int64  `db:"id"`
+	Title   string `db:"title"`
+	Content string `db:"content"`
+}
+
 type model struct {
-	choices              []Choice
 	cursor               Cursor
 	conn                 *sql.DB
 	err                  error
 	entries              []Entry
-	controller           Controller
-	QuitMsg              tea.QuitMsg
+	viewData             ViewData
 	textInput            textinput.Model
 	dbName               string
 	currentEntryId       int64
 	currentEntryFilePath string
 	goHome               bool
+	view                 interface{}
+}
+
+type errMsg struct{ err error }
+
+func (e errMsg) Error() string {
+	return e.err.Error()
 }
 
 func (m model) Init() tea.Cmd {
-	return nil
+	return func() tea.Msg {
+		err := m.initDB()
+		if err != nil {
+			return errMsg{err}
+		}
+
+		return nil
+	}
 }
 
-var addEntryChoice = Choice{"Add Entry", 0}
-var editEntryChoice = Choice{"Edit Entry", 1}
-var renameEntryChoice = Choice{"Rename Entry", 2}
+type Choice struct {
+	Text string
+	Id   int64
+}
+
+var addEntryChoice = Choice{Text: "Add Entry"}
+var editEntryChoice = Choice{Text: "Edit Entry"}
+var renameEntryChoice = Choice{Text: "Rename Entry"}
 var initialChoices = []Choice{addEntryChoice, editEntryChoice, renameEntryChoice}
 
 func initialModel() model {
 
 	m := model{
-		conn:    nil,
-		choices: initialChoices,
+		conn: nil,
+		viewData: ViewData{
+			choices: initialChoices,
+		},
 		err:     nil,
 		entries: []Entry{},
-		controller: Controller{
-			Text:   "",
-			Id:     MAIN,
-			render: mainController.render,
-			update: mainController.update,
-		},
 	}
-
-	m.initDB()
-	m.controller.Text = m.dbName + "\n\n"
 
 	/* Text input component */
 	ti := textinput.New()
