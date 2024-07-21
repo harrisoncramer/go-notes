@@ -105,6 +105,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				case addEntryChoice.Id:
 					m.prompt = addEntryPrompt
 				case editEntryChoice.Id:
+					m.cursor.idx = 0
 					m.readAllData()
 					if len(m.choices) > 0 {
 						m.prompt = chooseEntryToReadPrompt
@@ -112,6 +113,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						m.prompt = noEntriesFoundPrompt
 					}
 				case renameEntryChoice.Id:
+					m.cursor.idx = 0
 					m.readAllData()
 					if len(m.choices) > 0 {
 						m.prompt = chooseRenamePrompt
@@ -133,7 +135,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, tea.Quit
 				}
 				m.renameEntry(m.currentEntryId, content)
-				m.returnHome()
+				m.prompt = chooseRenamePrompt
 			case tea.KeyEsc:
 				m.returnHome()
 			case tea.KeyCtrlC:

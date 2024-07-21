@@ -72,8 +72,6 @@ func (m *model) readAllData() {
 	for _, entry := range m.entries {
 		m.choices = append(m.choices, Choice{Text: entry.Title, Id: entry.Id})
 	}
-
-	m.cursor.idx = 0
 }
 
 /* Adds a record to the SQL database */
@@ -129,6 +127,8 @@ func (m *model) renameEntry(id int64, title string) (*Entry, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	m.readAllData()
 
 	return &entry, nil
 }
