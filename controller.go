@@ -41,8 +41,7 @@ func (m model) View() string {
 		return m.err.Error()
 	}
 
-	if m.goHome {
-		m.goHome = false
+	if m.prompt.Id == "" {
 		m.prompt = mainPrompt
 		m.prompt.Text = m.dbName + "\n\n"
 	}
@@ -52,8 +51,8 @@ func (m model) View() string {
 
 /* The update function is responsible for updating state in the model and choosing a prompt */
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	if m.goHome {
-		m.goHome = false
+
+	if m.prompt.Id == "" {
 		m.prompt = mainPrompt
 		m.prompt.Text = m.dbName + "\n\n"
 	}
@@ -313,6 +312,7 @@ var editEntryPrompt = Prompt{
 		case tea.KeyMsg:
 			switch msg.String() {
 			case "e":
+				m.persistEntry()
 				return m.editEntry()
 			case "w":
 				m.persistEntry()
@@ -332,10 +332,10 @@ var editEntryPrompt = Prompt{
 }
 
 func (m *model) returnHome() {
+	m.prompt = Prompt{}
 	m.choices = initialChoices
 	m.currentEntryId = -1
 	m.cursor.idx = 0
-	m.goHome = true
 }
 
 func (m *model) handleCtrlC() (model, tea.Cmd) {
