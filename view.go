@@ -36,12 +36,12 @@ func (m model) addEntryRenderer(s string) string {
 }
 
 func (m model) choiceRenderer(s string) string {
-	for i, choice := range m.viewData.choices {
+	for i, choice := range m.viewData.entries {
 		prefix := " "
 		if m.cursor.idx == i {
 			prefix = ">"
 		}
-		s += fmt.Sprintf("%s %s\n", prefix, choice.Text)
+		s += fmt.Sprintf("%s %s\n", prefix, choice.Title)
 	}
 
 	return s

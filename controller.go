@@ -1,17 +1,17 @@
 package main
 
 import (
+	"errors"
+
 	tea "github.com/charmbracelet/bubbletea"
 )
-
-type dataLoaded struct{ data []Entry }
 
 func (m model) getView(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch m.view {
 	case addEntryView:
 		return m.createEntryController(msg)
 	case editEntryView:
-		return m.editEntryViewController(msg)
+		return m.editEntryController(msg)
 	default:
 		return m.mainController(msg)
 	}
@@ -29,7 +29,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.cursor.idx = 0
 		m.viewData = ViewData{}
 		for _, entry := range msg.data {
-			m.viewData.choices = append(m.viewData.choices, Choice{Text: entry.Title, Id: entry.Id})
+			m.viewData.entries = append(m.viewData.entries, entry)
 		}
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -52,8 +52,8 @@ func (m model) mainController(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "down", "j":
 			m.handleDownKey()
 		case "enter":
-			choice := m.viewData.choices[m.cursor.idx]
-			switch choice.Text {
+			choice := m.viewData.entries[m.cursor.idx]
+			switch choice.Title {
 			case "Add Entry":
 				return m, m.changeView(addEntryView)
 			case "Edit Entry":
@@ -86,9 +86,7 @@ func (m model) createEntryController(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.textInput.SetValue("")
 			return m.editEntry()
 		case tea.KeyEsc:
-			m.changeView(mainView)
-			m.viewData.choices = initialChoices
-			return m, nil
+			return m, m.changeView(mainView)
 		case tea.KeyCtrlC:
 			return m, tea.Quit
 		}
@@ -97,13 +95,12 @@ func (m model) createEntryController(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
-func (m model) editEntryViewController(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m model) editEntryController(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyEsc:
-			m.changeView(mainView)
-			m.viewData.choices = initialChoices
+			return m, m.changeView(mainView)
 		}
 		switch msg.String() {
 		case "up", "k":
@@ -127,7 +124,7 @@ func (m *model) handleUpKey() {
 }
 
 func (m *model) handleDownKey() {
-	if m.cursor.idx < len(m.viewData.choices)-1 {
+	if m.cursor.idx < len(m.viewData.entries)-1 {
 		m.cursor.idx++
 	}
 }
@@ -137,12 +134,24 @@ func (m *model) changeView(view string) tea.Cmd {
 	return m.loadData(view)
 }
 
+type dataLoaded struct{ data []Entry }
+
 func (m *model) loadData(view string) tea.Cmd {
 	return func() tea.Msg {
-		entries, err := m.readAllEntries()
-		if err != nil {
-			m.err = err
+		switch view {
+		case addEntryView:
+			return nil
+		case mainView:
+			return dataLoaded{data: initialChoices}
+		case editEntryView:
+			entries, err := m.readAllEntries()
+			if err != nil {
+				m.err = err
+			}
+			return dataLoaded{data: entries}
 		}
-		return dataLoaded{data: entries}
+
+		err := errors.New("Invalid data load")
+		return errMsg{err: err}
 	}
 }

@@ -13,7 +13,7 @@ type Cursor struct {
 }
 
 type ViewData struct {
-	choices []Choice
+	entries []Entry
 }
 
 type Entry struct {
@@ -26,7 +26,6 @@ type model struct {
 	cursor               Cursor
 	conn                 *sql.DB
 	err                  error
-	entries              []Entry
 	viewData             ViewData
 	textInput            textinput.Model
 	dbName               string
@@ -51,20 +50,19 @@ type Choice struct {
 	Id   int64
 }
 
-var addEntryChoice = Choice{Text: "Add Entry"}
-var editEntryChoice = Choice{Text: "Edit Entry"}
-var renameEntryChoice = Choice{Text: "Rename Entry"}
-var initialChoices = []Choice{addEntryChoice, editEntryChoice, renameEntryChoice}
+var addEntryChoice = Entry{Title: "Add Entry"}
+var editEntryChoice = Entry{Title: "Edit Entry"}
+var renameEntryChoice = Entry{Title: "Rename Entry"}
+var initialChoices = []Entry{addEntryChoice, editEntryChoice, renameEntryChoice}
 
 func initialModel() model {
 
 	m := model{
 		viewData: ViewData{
-			choices: initialChoices,
+			entries: initialChoices,
 		},
-		err:     nil,
-		entries: []Entry{},
-		view:    mainView,
+		err:  nil,
+		view: mainView,
 	}
 
 	/* Text input component */
