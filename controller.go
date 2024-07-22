@@ -58,8 +58,6 @@ func (m model) mainController(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, m.changeView(addEntryView)
 			case "Edit Entry":
 				return m, m.changeView(editEntryView)
-			case "Rename Entry":
-				return m, m.changeView(addEntryView)
 			}
 		}
 	}
