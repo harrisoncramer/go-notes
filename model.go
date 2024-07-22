@@ -78,7 +78,7 @@ func initialModel() model {
 		m.err = err
 	}
 
-	if m.conn == nil {
+	if m.conn == nil && m.err == nil {
 		m.err = errors.New("DB Connection not established!")
 	}
 
