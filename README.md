@@ -10,3 +10,5 @@ It writes the files to a sqlite3 database directly from the terminal, using an e
 $ go build .
 $ ./go-notes "My Diary"
 ```
+
+You can make as many databases as you want.
