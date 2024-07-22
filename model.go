@@ -52,8 +52,7 @@ type Choice struct {
 
 var addEntryChoice = Entry{Title: "Add Entry"}
 var editEntryChoice = Entry{Title: "Edit Entry"}
-var renameEntryChoice = Entry{Title: "Rename Entry"}
-var initialChoices = []Entry{addEntryChoice, editEntryChoice, renameEntryChoice}
+var initialChoices = []Entry{addEntryChoice, editEntryChoice}
 
 func initialModel() model {
 

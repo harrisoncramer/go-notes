@@ -36,6 +36,11 @@ func (m model) addEntryRenderer(s string) string {
 }
 
 func (m model) choiceRenderer(s string) string {
+	if len(m.viewData.entries) == 0 {
+		s += "No entries found!\n"
+		return s
+	}
+
 	for i, choice := range m.viewData.entries {
 		prefix := " "
 		if m.cursor.idx == i {

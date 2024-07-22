@@ -97,7 +97,5 @@ func (m *model) renameEntry(id int64, title string) (*Entry, error) {
 		return nil, err
 	}
 
-	// m.readAllEntries()
-
 	return &entry, nil
 }
