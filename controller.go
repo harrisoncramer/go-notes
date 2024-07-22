@@ -101,6 +101,10 @@ func (m model) editEntryController(msg tea.Msg) (tea.Model, tea.Cmd) {
 		switch msg.Type {
 		case tea.KeyEsc:
 			return m, m.changeView(mainView)
+		case tea.KeyEnter:
+			choice := m.viewData.entries[m.cursor.idx]
+			m.currentEntryId = choice.Id
+			return m.editEntry()
 		}
 		switch msg.String() {
 		case "up", "k":
