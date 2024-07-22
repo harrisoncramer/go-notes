@@ -37,11 +37,11 @@ func (m *model) initDB() error {
 	return err
 }
 
-/* Reads all entries from the SQL database into the model as choices */
-func (m *model) readAllData() error {
+/* Reads all entries from the SQL database */
+func (m *model) readAllEntries() ([]Entry, error) {
 	rows, err := m.conn.Query("SELECT id, title FROM entries")
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	defer rows.Close()
@@ -51,17 +51,12 @@ func (m *model) readAllData() error {
 		var id int64
 		var title string
 		if err := rows.Scan(&id, &title); err != nil {
-			return err
+			return nil, err
 		}
 		results = append(results, Entry{Title: title, Id: id})
 	}
 
-	m.entries = results
-	for _, entry := range results {
-		m.viewData.choices = append(m.viewData.choices, Choice{Text: entry.Title, Id: entry.Id})
-	}
-
-	return nil
+	return results, nil
 }
 
 /* Adds a record to the SQL database */
@@ -102,7 +97,7 @@ func (m *model) renameEntry(id int64, title string) (*Entry, error) {
 		return nil, err
 	}
 
-	m.readAllData()
+	// m.readAllEntries()
 
 	return &entry, nil
 }

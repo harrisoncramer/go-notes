@@ -16,11 +16,11 @@ func (m model) View() string {
 
 	switch m.view {
 	case mainView:
-		s += m.mainRenderer(s)
+		s += m.choiceRenderer(s)
 	case addEntryView:
 		s += m.addEntryRenderer(s)
 	case editEntryView:
-		s += m.editEntryRenderer(s)
+		s += m.choiceRenderer(s)
 	}
 
 	s += "\nPress <C-c> to quit\n"
@@ -35,7 +35,7 @@ func (m model) addEntryRenderer(s string) string {
 	return s
 }
 
-func (m model) mainRenderer(s string) string {
+func (m model) choiceRenderer(s string) string {
 	for i, choice := range m.viewData.choices {
 		prefix := " "
 		if m.cursor.idx == i {
@@ -45,8 +45,4 @@ func (m model) mainRenderer(s string) string {
 	}
 
 	return s
-}
-
-func (m model) editEntryRenderer(s string) string {
-	return "Editing..."
 }
