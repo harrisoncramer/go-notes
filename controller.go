@@ -4,6 +4,19 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
+type dataLoaded struct{ data []Entry }
+
+func (m model) getView(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch m.view {
+	case addEntryView:
+		return m.createEntryController(msg)
+	case editEntryView:
+		return m.editEntryViewController(msg)
+	default:
+		return m.mainController(msg)
+	}
+}
+
 /* The update function is responsible for getting a message from the Init function, and updating state in the model */
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
@@ -12,23 +25,21 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case errMsg:
 		m.err = msg
 		return m, nil
+	case dataLoaded:
+		m.cursor.idx = 0
+		m.viewData = ViewData{}
+		for _, entry := range msg.data {
+			m.viewData.choices = append(m.viewData.choices, Choice{Text: entry.Title, Id: entry.Id})
+		}
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c":
 			return m.handleCtrlC()
 		default:
-			switch m.view {
-			case addEntryView:
-				return m.createEntryController(msg)
-			case editEntryView:
-				return m.editEntryViewController(msg)
-			default:
-				return m.mainController(msg)
-			}
+			return m.getView(msg)
 		}
 	}
-
-	return m, nil
+	return m.getView(msg)
 }
 
 /* The main controller is the root of the application */
@@ -44,11 +55,11 @@ func (m model) mainController(msg tea.Msg) (tea.Model, tea.Cmd) {
 			choice := m.viewData.choices[m.cursor.idx]
 			switch choice.Text {
 			case "Add Entry":
-				m.changeView(addEntryView)
+				return m, m.changeView(addEntryView)
 			case "Edit Entry":
-				m.changeView(editEntryView)
+				return m, m.changeView(editEntryView)
 			case "Rename Entry":
-				m.changeView(addEntryView)
+				return m, m.changeView(addEntryView)
 			}
 		}
 	}
@@ -87,6 +98,20 @@ func (m model) createEntryController(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 func (m model) editEntryViewController(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	case tea.KeyMsg:
+		switch msg.Type {
+		case tea.KeyEsc:
+			m.changeView(mainView)
+			m.viewData.choices = initialChoices
+		}
+		switch msg.String() {
+		case "up", "k":
+			m.handleUpKey()
+		case "down", "j":
+			m.handleDownKey()
+		}
+	}
 	return m, nil
 }
 
@@ -107,8 +132,17 @@ func (m *model) handleDownKey() {
 	}
 }
 
-func (m *model) changeView(view string) {
-	m.cursor.idx = 0
-	m.viewData = ViewData{}
+func (m *model) changeView(view string) tea.Cmd {
 	m.view = view
+	return m.loadData(view)
+}
+
+func (m *model) loadData(view string) tea.Cmd {
+	return func() tea.Msg {
+		entries, err := m.readAllEntries()
+		if err != nil {
+			m.err = err
+		}
+		return dataLoaded{data: entries}
+	}
 }
