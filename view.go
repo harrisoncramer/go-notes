@@ -2,11 +2,11 @@ package main
 
 import "fmt"
 
-const addEntryView = "addEntry"
-const editEntryView = "editEntry"
-const mainView = "main"
-const settingsView = "settings"
-const settingsEditorView = "editSettings"
+const addEntryView = "Add Entry"
+const editEntryView = "Edit Entry"
+const mainView = "Main"
+const settingsView = "Settings"
+const settingsEditorView = "Settings/Edit"
 
 /* The view function is responsible for rendering different screens */
 func (m model) View() string {
@@ -14,30 +14,30 @@ func (m model) View() string {
 		return m.err.Error()
 	}
 
-	s := fmt.Sprintf("%s 📓 \n\n", m.dbName)
+	s := fmt.Sprintf("%s 📓\n", m.dbName)
+	s += fmt.Sprintf("%s\n\n", m.view)
 
 	switch m.view {
 	case mainView:
 		s += m.choiceRenderer()
 	case addEntryView:
-		s += m.textInputRenderer("Add Entry")
+		s += m.textInputRenderer()
 	case editEntryView:
 		s += m.choiceRenderer()
 	case settingsView:
 		s += m.choiceRenderer()
 	case settingsEditorView:
-		s += m.textInputRenderer("Update Setting")
+		s += m.textInputRenderer()
 	}
 
 	s += "\nPress <C-c> to quit\n"
 	return s
 }
 
-func (m model) textInputRenderer(title string) string {
+func (m model) textInputRenderer() string {
 	s := ""
 	s += fmt.Sprintf(
-		"%s:\n\n%s\n\n",
-		title,
+		"%s:\n\n",
 		m.textInput.View())
 	return s
 }

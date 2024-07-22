@@ -66,6 +66,7 @@ func (m model) mainController(msg tea.Msg) (tea.Model, tea.Cmd) {
 			choice := m.viewData.entries[m.cursor.idx]
 			switch choice {
 			case addEntryChoice:
+				m.textInput.Placeholder = "Learning about Go"
 				return m, m.changeView(addEntryView)
 			case editEntryChoice:
 				return m, m.changeView(editEntryView)
@@ -98,7 +99,6 @@ func (m model) createEntryController(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.textInput.SetValue("")
 			return m.editEntry()
 		case tea.KeyEsc:
-			m.textInput.SetValue("")
 			return m, m.changeView(mainView)
 		case tea.KeyCtrlC:
 			return m, tea.Quit
@@ -140,6 +140,7 @@ func (m model) settingsController(msg tea.Msg) (tea.Model, tea.Cmd) {
 			choice := m.viewData.entries[m.cursor.idx]
 			value := choice.Content
 			m.textInput.SetValue(value)
+			m.textInput.Placeholder = value
 			return m, m.changeView(settingsEditorView)
 		}
 		switch msg.String() {
