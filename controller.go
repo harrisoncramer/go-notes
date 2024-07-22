@@ -6,7 +6,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-func (m model) getView(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m model) getController(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch m.view {
 	case addEntryView:
 		return m.createEntryController(msg)
@@ -36,10 +36,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c":
 			return m.handleCtrlC()
 		default:
-			return m.getView(msg)
+			return m.getController(msg)
 		}
 	}
-	return m.getView(msg)
+	return m.getController(msg)
 }
 
 /* The main controller is the root of the application */
