@@ -12,22 +12,23 @@ func (m model) View() string {
 		return m.err.Error()
 	}
 
-	s := ""
+	s := fmt.Sprintf("%s 📓 \n\n", m.dbName)
 
 	switch m.view {
 	case mainView:
-		s += m.choiceRenderer(s)
+		s += m.choiceRenderer()
 	case addEntryView:
-		s += m.addEntryRenderer(s)
+		s += m.addEntryRenderer()
 	case editEntryView:
-		s += m.choiceRenderer(s)
+		s += m.choiceRenderer()
 	}
 
 	s += "\nPress <C-c> to quit\n"
 	return s
 }
 
-func (m model) addEntryRenderer(s string) string {
+func (m model) addEntryRenderer() string {
+	s := ""
 	s += fmt.Sprintf(
 		"%s:\n\n%s\n\n",
 		"Add Entry",
@@ -35,7 +36,8 @@ func (m model) addEntryRenderer(s string) string {
 	return s
 }
 
-func (m model) choiceRenderer(s string) string {
+func (m model) choiceRenderer() string {
+	s := ""
 	if len(m.viewData.entries) == 0 {
 		s += "No entries found!\n"
 		return s
