@@ -10,36 +10,7 @@ import (
 
 type editorFinishedMsg struct{ err error }
 
-func (m *model) openEditor(entry *Entry) tea.Cmd {
-	editor := os.Getenv("EDITOR")
-	if editor == "" {
-		editor = "vim"
-	}
-
-	tmpfile, err := os.CreateTemp("", "entry.txt")
-	if err != nil {
-		m.err = err
-		return nil
-	}
-
-	name := tmpfile.Name()
-	m.currentEntryFilePath = name
-
-	if _, err := tmpfile.Write([]byte(entry.Content)); err != nil {
-		m.err = err
-		return nil
-	}
-
-	if err := tmpfile.Close(); err != nil {
-		return nil
-	}
-
-	c := exec.Command(editor, name)
-	return tea.ExecProcess(c, func(err error) tea.Msg {
-		return editorFinishedMsg{err}
-	})
-}
-
+/* Opens an editor, which upon closure, will return the "editorFinishedMsg" message */
 func (m *model) editEntry() (tea.Model, tea.Cmd) {
 	currentEntryId := m.currentEntryId
 	entry, err := m.readEntryById(currentEntryId)
@@ -48,9 +19,36 @@ func (m *model) editEntry() (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
-	return m, m.openEditor(entry)
+	editor := os.Getenv("EDITOR")
+	if editor == "" {
+		editor = "vim"
+	}
+
+	tmpfile, err := os.CreateTemp("", "entry.txt")
+	if err != nil {
+		m.err = err
+		return m, nil
+	}
+
+	name := tmpfile.Name()
+	m.currentEntryFilePath = name
+
+	if _, err := tmpfile.Write([]byte(entry.Content)); err != nil {
+		m.err = err
+		return m, nil
+	}
+
+	if err := tmpfile.Close(); err != nil {
+		return m, nil
+	}
+
+	c := exec.Command(editor, name)
+	return m, tea.ExecProcess(c, func(err error) tea.Msg {
+		return editorFinishedMsg{err}
+	})
 }
 
+/* Gets the contents of the file at the current temporary file location and saves it to the database */
 func (m *model) persistEntry() tea.Cmd {
 	file, err := os.Open(m.currentEntryFilePath)
 	if err != nil {

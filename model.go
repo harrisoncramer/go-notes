@@ -12,14 +12,25 @@ type Cursor struct {
 	idx int
 }
 
+type KeyVal struct {
+	Key   string
+	Value string
+}
+
 type ViewData struct {
 	entries []Entry
+	keyVals []KeyVal
 }
 
 type Entry struct {
 	Id      int64  `db:"id"`
 	Title   string `db:"title"`
-	Content string `db:"content"`
+	Content string `db:"string"`
+}
+
+type Setting struct {
+	Key   string `db:"key"`
+	Value string `db:"value"`
 }
 
 type model struct {
@@ -52,7 +63,8 @@ type Choice struct {
 
 var addEntryChoice = Entry{Title: "Add Entry"}
 var editEntryChoice = Entry{Title: "Edit Entry"}
-var initialChoices = []Entry{addEntryChoice, editEntryChoice}
+var settingsEntryChoice = Entry{Title: "Settings"}
+var initialChoices = []Entry{addEntryChoice, editEntryChoice, settingsEntryChoice}
 
 func initialModel() model {
 
@@ -69,7 +81,7 @@ func initialModel() model {
 	ti.Placeholder = "Learning about Go"
 	ti.Focus()
 	ti.CharLimit = 156
-	ti.Width = 20
+	ti.Width = 60
 	m.textInput = ti
 
 	err := m.initDB()

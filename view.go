@@ -5,6 +5,8 @@ import "fmt"
 const addEntryView = "addEntry"
 const editEntryView = "editEntry"
 const mainView = "main"
+const settingsView = "settings"
+const settingsEditorView = "editSettings"
 
 /* The view function is responsible for rendering different screens */
 func (m model) View() string {
@@ -18,20 +20,24 @@ func (m model) View() string {
 	case mainView:
 		s += m.choiceRenderer()
 	case addEntryView:
-		s += m.addEntryRenderer()
+		s += m.textInputRenderer("Add Entry")
 	case editEntryView:
 		s += m.choiceRenderer()
+	case settingsView:
+		s += m.choiceRenderer()
+	case settingsEditorView:
+		s += m.textInputRenderer("Update Setting")
 	}
 
 	s += "\nPress <C-c> to quit\n"
 	return s
 }
 
-func (m model) addEntryRenderer() string {
+func (m model) textInputRenderer(title string) string {
 	s := ""
 	s += fmt.Sprintf(
 		"%s:\n\n%s\n\n",
-		"Add Entry",
+		title,
 		m.textInput.View())
 	return s
 }
