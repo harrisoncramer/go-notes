@@ -65,6 +65,7 @@ func (m model) mainController(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
+/* Responsible for creating new entries */
 func (m model) createEntryController(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
@@ -93,6 +94,7 @@ func (m model) createEntryController(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, cmd
 }
 
+/* Responsible for all update and delete operations on existing entries */
 func (m model) editEntryController(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -114,7 +116,10 @@ func (m model) editEntryController(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-/**** Common Helpers ****/
+/****************/
+/*** Helpers 🤝 */
+/****************/
+
 func (m model) handleCtrlC() (model, tea.Cmd) {
 	return m, tea.Quit
 }
