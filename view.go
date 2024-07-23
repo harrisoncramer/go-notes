@@ -1,21 +1,29 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+)
 
-const addEntryView = "Add Entry"
-const editEntryView = "Edit Entry"
+const addEntryView = "Entries - Add"
+const editEntryView = "Entries - Edit"
 const mainView = "Main"
 const settingsView = "Settings"
-const settingsEditorView = "Settings/Edit"
+const settingsEditorView = "Settings -> Edit"
 
 /* The view function is responsible for rendering different screens */
 func (m model) View() string {
 	if m.err != nil {
-		return m.err.Error()
+		return errStyle.Render(m.err.Error())
 	}
 
-	s := fmt.Sprintf("%s 📓\n", m.dbName)
-	s += fmt.Sprintf("%s\n\n", m.view)
+	s := titleStyle.Render(fmt.Sprintf("%s 📓", m.dbName))
+
+	if m.view != mainView {
+		s += "\n"
+		s += navStyle.Render(fmt.Sprintf("%s", m.view))
+	}
+
+	s += "\n\n"
 
 	switch m.view {
 	case mainView:

@@ -9,6 +9,7 @@ import (
 )
 
 type editorFinishedMsg struct{ err error }
+type fileSavedMsg bool
 
 /* Opens an editor, which upon closure, will return the "editorFinishedMsg" message */
 func (m *model) editEntry() (tea.Model, tea.Cmd) {
@@ -70,5 +71,7 @@ func (m *model) persistEntry() tea.Cmd {
 		return nil
 	}
 
-	return tea.Quit
+	return func() tea.Msg {
+		return fileSavedMsg(true)
+	}
 }
