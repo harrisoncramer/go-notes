@@ -43,7 +43,7 @@ type model struct {
 	currentEntryId       int64
 	currentEntryFilePath string
 	goHome               bool
-	view                 string
+	view                 View
 }
 
 type errMsg struct{ err error }

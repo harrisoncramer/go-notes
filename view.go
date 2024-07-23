@@ -4,11 +4,15 @@ import (
 	"fmt"
 )
 
-const addEntryView = "Entries - Add"
-const editEntryView = "Entries - Edit"
-const mainView = "Main"
-const settingsView = "Settings"
-const settingsEditorView = "Settings -> Edit"
+type View string
+
+const (
+	addEntryView       View = "Entries - Add"
+	editEntryView           = "Entries - Edit"
+	mainView                = "Main"
+	settingsView            = "Settings"
+	settingsEditorView      = "Settings -> Edit"
+)
 
 /* The view function is responsible for rendering different screens */
 func (m model) View() string {

@@ -88,7 +88,7 @@ func (m model) createEntryController(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyEnter:
 			title := m.textInput.Value()
 			if title == "" {
-				return m, tea.Quit
+				return m, Quitter
 			}
 			id, err := m.createEntry(title, "")
 			if err != nil {
@@ -101,7 +101,7 @@ func (m model) createEntryController(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyEsc:
 			return m, m.changeView(mainView)
 		case tea.KeyCtrlC:
-			return m, tea.Quit
+			return m, Quitter
 		}
 		m.textInput, cmd = m.textInput.Update(msg)
 	}
@@ -174,7 +174,7 @@ func (m model) editSettingsController(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.textInput.SetValue("")
 			return m, m.changeView(mainView)
 		case tea.KeyCtrlC:
-			return m, tea.Quit
+			return m, Quitter
 		}
 		m.textInput, cmd = m.textInput.Update(msg)
 	}
@@ -186,7 +186,7 @@ func (m model) editSettingsController(msg tea.Msg) (tea.Model, tea.Cmd) {
 /****************/
 
 func (m model) handleCtrlC() (model, tea.Cmd) {
-	return m, tea.Quit
+	return m, Quitter
 }
 
 func (m *model) handleUpKey() {
@@ -201,7 +201,7 @@ func (m *model) handleDownKey() {
 	}
 }
 
-func (m *model) changeView(view string) tea.Cmd {
+func (m *model) changeView(view View) tea.Cmd {
 	m.view = view
 	return m.loadData(view)
 }
@@ -210,7 +210,7 @@ type dataLoader interface{}
 type dataLoaded struct{ data dataLoader }
 
 /* Loads the data required for the view and returns it in the dataLoaded message */
-func (m *model) loadData(view string) tea.Cmd {
+func (m *model) loadData(view View) tea.Cmd {
 	return func() tea.Msg {
 		switch view {
 		case addEntryView, settingsEditorView:
@@ -234,4 +234,8 @@ func (m *model) loadData(view string) tea.Cmd {
 		err := errors.New("Invalid data load")
 		return errMsg{err: err}
 	}
+}
+
+func Quitter() tea.Msg {
+	return tea.Quit()
 }
