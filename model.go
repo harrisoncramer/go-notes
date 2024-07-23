@@ -17,7 +17,7 @@ type KeyVal struct {
 	Value string
 }
 
-type ViewData struct {
+type state struct {
 	entries []Entry
 	keyVals []KeyVal
 }
@@ -37,7 +37,7 @@ type model struct {
 	cursor               Cursor
 	conn                 *sql.DB
 	err                  error
-	viewData             ViewData
+	state                state
 	textInput            textinput.Model
 	dbName               string
 	currentEntryId       int64
@@ -69,7 +69,7 @@ var initialChoices = []Entry{addEntryChoice, editEntryChoice, settingsEntryChoic
 func initialModel() model {
 
 	m := model{
-		viewData: ViewData{
+		state: state{
 			entries: initialChoices,
 		},
 		err:  nil,

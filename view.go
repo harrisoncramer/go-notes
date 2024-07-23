@@ -56,12 +56,12 @@ func (m model) textInputRenderer() string {
 
 func (m model) choiceRenderer() string {
 	s := ""
-	if len(m.viewData.entries) == 0 {
+	if len(m.state.entries) == 0 {
 		s += "No entries found!\n"
 		return s
 	}
 
-	for i, choice := range m.viewData.entries {
+	for i, choice := range m.state.entries {
 		prefix := " "
 		if m.cursor.idx == i {
 			prefix = ">"

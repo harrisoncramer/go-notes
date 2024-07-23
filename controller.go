@@ -31,15 +31,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case dataLoaded:
 		m.cursor.idx = 0
-		m.viewData = ViewData{}
+		m.state = state{}
 		switch data := msg.data.(type) {
 		case []Entry:
 			for _, entry := range data {
-				m.viewData.entries = append(m.viewData.entries, entry)
+				m.state.entries = append(m.state.entries, entry)
 			}
 		case []Setting:
 			for _, setting := range data {
-				m.viewData.entries = append(m.viewData.entries, Entry{Title: setting.Key, Content: setting.Value})
+				m.state.entries = append(m.state.entries, Entry{Title: setting.Key, Content: setting.Value})
 			}
 		}
 	case tea.KeyMsg:
@@ -63,7 +63,7 @@ func (m model) mainController(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "down", "j":
 			m.handleDownKey()
 		case "enter":
-			choice := m.viewData.entries[m.cursor.idx]
+			choice := m.state.entries[m.cursor.idx]
 			switch choice {
 			case addEntryChoice:
 				m.textInput.Placeholder = "Learning about Go"
@@ -116,7 +116,7 @@ func (m model) editEntryController(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyEsc:
 			return m, m.changeView(mainView)
 		case tea.KeyEnter:
-			choice := m.viewData.entries[m.cursor.idx]
+			choice := m.state.entries[m.cursor.idx]
 			m.currentEntryId = choice.Id
 			return m.editEntry()
 		}
@@ -137,7 +137,7 @@ func (m model) settingsController(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyEsc:
 			return m, m.changeView(mainView)
 		case tea.KeyEnter:
-			choice := m.viewData.entries[m.cursor.idx]
+			choice := m.state.entries[m.cursor.idx]
 			value := choice.Content
 			m.textInput.SetValue(value)
 			m.textInput.Placeholder = value
@@ -159,7 +159,7 @@ func (m model) editSettingsController(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.KeyMsg:
 		switch msg.Type {
 		case tea.KeyEnter:
-			key := m.viewData.entries[m.cursor.idx].Title
+			key := m.state.entries[m.cursor.idx].Title
 			value := m.textInput.Value()
 			if value == "" {
 				return m, m.changeView(mainView)
@@ -196,7 +196,7 @@ func (m *model) handleUpKey() {
 }
 
 func (m *model) handleDownKey() {
-	if m.cursor.idx < len(m.viewData.entries)-1 {
+	if m.cursor.idx < len(m.state.entries)-1 {
 		m.cursor.idx++
 	}
 }
