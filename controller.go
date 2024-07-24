@@ -90,7 +90,7 @@ func (m Model) createEntryController(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if title == "" {
 				return m, Quitter
 			}
-			entry, err := db.createEntry(title, "")
+			entry, err := m.db.createEntry(title, "")
 			if err != nil {
 				m.err = err
 				return m, nil
@@ -164,7 +164,7 @@ func (m Model) editSettingsController(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if value == "" {
 				return m, m.changeView(mainView)
 			}
-			_, err := db.updateSetting(key, value)
+			_, err := m.db.updateSetting(key, value)
 			if err != nil {
 				m.err = err
 				return m, nil
@@ -218,13 +218,13 @@ func (m *Model) loadData(view View) tea.Cmd {
 		case mainView:
 			return dataLoaded{data: initialChoices}
 		case settingsView:
-			settings, err := db.readAllSettings()
+			settings, err := m.db.readAllSettings()
 			if err != nil {
 				m.err = err
 			}
 			return dataLoaded{data: settings}
 		case editEntryView:
-			entries, err := db.readAllEntries()
+			entries, err := m.db.readAllEntries()
 			if err != nil {
 				m.err = err
 			}

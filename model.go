@@ -40,6 +40,7 @@ type Model struct {
 	currentEntryFilePath string
 	goHome               bool
 	view                 View
+	db                   Database
 }
 
 type errMsg struct{ err error }
@@ -52,24 +53,21 @@ func (m Model) Init() tea.Cmd {
 	return nil
 }
 
-var db = Orm{}
-
 var addEntryChoice = Entry{Title: "Add Entry"}
 var editEntryChoice = Entry{Title: "Edit Entry"}
 var settingsEntryChoice = Entry{Title: "Settings"}
 var initialChoices = []Entry{addEntryChoice, editEntryChoice, settingsEntryChoice}
 
 func initialModel() Model {
+	db := SqlLite{}
+	err := db.Init()
 	m := Model{
 		state: State{
 			entries: initialChoices,
 		},
 		view: mainView,
-	}
-
-	err := db.Init(m)
-	if err != nil {
-		m.err = err
+		db:   db,
+		err:  err,
 	}
 
 	/* Text input component */

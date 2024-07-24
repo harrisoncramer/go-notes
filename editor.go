@@ -14,7 +14,7 @@ type entrySavedMsg struct{ entry Entry }
 /* Opens an editor, which upon closure, will return the "editorFinishedMsg" message */
 func (m *Model) editEntry() (tea.Model, tea.Cmd) {
 	currentEntryId := m.currentEntryId
-	entry, err := db.readEntry(currentEntryId)
+	entry, err := m.db.readEntry(currentEntryId)
 	if err != nil {
 		m.err = err
 		return m, nil
@@ -65,7 +65,7 @@ func (m *Model) persistEntry() tea.Cmd {
 		return nil
 	}
 
-	entry, err := db.updateEntryText(m.currentEntryId, string(content))
+	entry, err := m.db.updateEntryText(m.currentEntryId, string(content))
 	if err != nil {
 		m.err = err
 		return nil

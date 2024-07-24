@@ -20,7 +20,7 @@ func (m Model) View() string {
 		return errStyle.Render(m.err.Error())
 	}
 
-	s := titleStyle.Render(fmt.Sprintf("%s 📓", db.name))
+	s := titleStyle.Render(fmt.Sprintf("%s 📓", m.db.getName()))
 
 	if m.view != mainView {
 		s += "\n"
