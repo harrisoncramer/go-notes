@@ -17,6 +17,7 @@ type Database interface {
 	readAllSettings() ([]Setting, error)
 	updateSetting(key string, value string) (Setting, error)
 	getName() string
+	initStorage() error
 }
 
 type SqlLite struct {
@@ -25,32 +26,38 @@ type SqlLite struct {
 }
 
 /* Initializes the database and all tables */
-func (db *SqlLite) Init() error {
+func createDb() (Database, error) {
 	user, err := user.Current()
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	if len(os.Args) < 2 {
-		return errors.New("Must provide a database name!")
+		return nil, errors.New("Must provide a database name!")
 	}
 
+	db := SqlLite{}
 	db.name = os.Args[1]
 	conn, err := sql.Open("sqlite3", fmt.Sprintf("%s/%s.db", user.HomeDir, db.name))
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	db.conn = conn
 
-	_, err = db.conn.Exec(`
+	return db, nil
+}
+
+func (db SqlLite) initStorage() error {
+	_, err := db.conn.Exec(`
       CREATE TABLE IF NOT EXISTS entries (
         id integer primary key autoincrement,
         title TEXT,
         content TEXT
       );
     `)
+
 	if err != nil {
 		return err
 	}
@@ -75,7 +82,7 @@ func (db *SqlLite) Init() error {
 		return err
 	}
 
-	return err
+	return nil
 }
 
 /* Returns the name of the database */

@@ -59,15 +59,22 @@ var settingsEntryChoice = Entry{Title: "Settings"}
 var initialChoices = []Entry{addEntryChoice, editEntryChoice, settingsEntryChoice}
 
 func initialModel() Model {
-	db := SqlLite{}
-	err := db.Init()
+
+	db, err := createDb()
+	if err != nil {
+		return Model{err: err}
+	}
+
+	if err = db.initStorage(); err != nil {
+		return Model{err: err}
+	}
+
 	m := Model{
 		state: State{
 			entries: initialChoices,
 		},
 		view: mainView,
 		db:   db,
-		err:  err,
 	}
 
 	/* Text input component */
