@@ -9,7 +9,7 @@ import (
 )
 
 type editorFinishedMsg struct{ err error }
-type fileSavedMsg bool
+type entrySavedMsg struct{ entry Entry }
 
 /* Opens an editor, which upon closure, will return the "editorFinishedMsg" message */
 func (m *Model) editEntry() (tea.Model, tea.Cmd) {
@@ -65,13 +65,13 @@ func (m *Model) persistEntry() tea.Cmd {
 		return nil
 	}
 
-	err = db.updateEntryText(m.currentEntryId, string(content))
+	entry, err := db.updateEntryText(m.currentEntryId, string(content))
 	if err != nil {
 		m.err = err
 		return nil
 	}
 
 	return func() tea.Msg {
-		return fileSavedMsg(true)
+		return entrySavedMsg{entry}
 	}
 }

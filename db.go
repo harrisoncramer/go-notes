@@ -12,11 +12,10 @@ type Database interface {
 	readAllEntries() ([]Entry, error)
 	createEntry(title string, content string) (Entry, error)
 	readEntry(id int64) (Entry, error)
-	updateEntryText(content string) (Entry, error)
-	renameEntry(title string) (Entry, error)
+	updateEntryText(id int64, content string) (Entry, error)
+	renameEntry(id int64, title string) (Entry, error)
 	readAllSettings() ([]Setting, error)
 	updateSetting(key string, value string) (Setting, error)
-	init(m Model) error
 }
 
 type Orm struct {
@@ -25,7 +24,7 @@ type Orm struct {
 }
 
 /* Initializes the database and all tables */
-func (db *Orm) init(m Model) error {
+func (db *Orm) Init(m Model) error {
 	user, err := user.Current()
 	if err != nil {
 		return err
@@ -79,7 +78,7 @@ func (db *Orm) init(m Model) error {
 }
 
 /* Reads all entries from the SQL database */
-func (db *Orm) readAllEntries() ([]Entry, error) {
+func (db Orm) readAllEntries() ([]Entry, error) {
 	rows, err := db.conn.Query("SELECT id, title FROM entries")
 	if err != nil {
 		return nil, err
@@ -101,26 +100,24 @@ func (db *Orm) readAllEntries() ([]Entry, error) {
 }
 
 /* Adds a record to the SQL database */
-func (db *Orm) createEntry(title string, content string) (Entry, error) {
+func (db Orm) createEntry(title string, content string) (Entry, error) {
 	result, err := db.conn.Exec("INSERT INTO entries(title, content) VALUES(?, ?)", title, content)
 	if err != nil {
 		return Entry{}, err
 	}
 
 	id, _ := result.LastInsertId()
-	var entry Entry
-	err = db.conn.QueryRow("SELECT title, content FROM entries WHERE id = ?", id).Scan(&entry.Title, &entry.Content)
+	return db.readEntry(id)
+}
+
+/* Updates an entry's (by ID) text */
+func (db Orm) updateEntryText(id int64, text string) (Entry, error) {
+	_, err := db.conn.Exec("UPDATE entries SET content = ? WHERE id = ?", text, id)
 	if err != nil {
 		return Entry{}, err
 	}
 
-	return entry, nil
-}
-
-/* Updates an entry's (by ID) text */
-func (db *Orm) updateEntryText(id int64, text string) error {
-	_, err := db.conn.Exec("UPDATE entries SET content = ? WHERE id = ?", text, id)
-	return err
+	return db.readEntry(id)
 }
 
 /* Reads an entry from the database by it's ID */
@@ -135,22 +132,16 @@ func (db Orm) readEntry(id int64) (Entry, error) {
 }
 
 /* Renames an entry's (by ID) title */
-func (db *Orm) renameEntry(id int64, title string) (Entry, error) {
+func (db Orm) renameEntry(id int64, title string) (Entry, error) {
 	_, err := db.conn.Exec("UPDATE entries SET title = ? WHERE id = ?", title, id)
 	if err != nil {
 		return Entry{}, err
 	}
 
-	var entry Entry
-	err = db.conn.QueryRow("SELECT id, title, content FROM entries WHERE id = ?", id).Scan(&entry.Id, &entry.Title, &entry.Content)
-	if err != nil {
-		return Entry{}, err
-	}
-
-	return entry, nil
+	return db.readEntry(id)
 }
 
-func (db *Orm) readAllSettings() ([]Setting, error) {
+func (db Orm) readAllSettings() ([]Setting, error) {
 	rows, err := db.conn.Query("SELECT key, value FROM settings")
 	if err != nil {
 		return nil, err
@@ -171,7 +162,7 @@ func (db *Orm) readAllSettings() ([]Setting, error) {
 	return results, nil
 }
 
-func (db *Orm) updateSetting(key string, value string) (Setting, error) {
+func (db Orm) updateSetting(key string, value string) (Setting, error) {
 	_, err := db.conn.Exec("UPDATE settings SET value = ? WHERE key = ?", value, key)
 	if err != nil {
 		return Setting{}, err

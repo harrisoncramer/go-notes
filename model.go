@@ -67,7 +67,7 @@ func initialModel() Model {
 		view: mainView,
 	}
 
-	err := db.init(m)
+	err := db.Init(m)
 	if err != nil {
 		m.err = err
 	}
