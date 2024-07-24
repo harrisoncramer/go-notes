@@ -15,12 +15,12 @@ const (
 )
 
 /* The view function is responsible for rendering different screens */
-func (m model) View() string {
+func (m Model) View() string {
 	if m.err != nil {
 		return errStyle.Render(m.err.Error())
 	}
 
-	s := titleStyle.Render(fmt.Sprintf("%s 📓", m.dbName))
+	s := titleStyle.Render(fmt.Sprintf("%s 📓", db.name))
 
 	if m.view != mainView {
 		s += "\n"
@@ -46,7 +46,7 @@ func (m model) View() string {
 	return s
 }
 
-func (m model) textInputRenderer() string {
+func (m Model) textInputRenderer() string {
 	s := ""
 	s += fmt.Sprintf(
 		"%s:\n\n",
@@ -54,7 +54,7 @@ func (m model) textInputRenderer() string {
 	return s
 }
 
-func (m model) choiceRenderer() string {
+func (m Model) choiceRenderer() string {
 	s := ""
 	if len(m.state.entries) == 0 {
 		s += "No entries found!\n"

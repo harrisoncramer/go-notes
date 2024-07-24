@@ -12,9 +12,9 @@ type editorFinishedMsg struct{ err error }
 type fileSavedMsg bool
 
 /* Opens an editor, which upon closure, will return the "editorFinishedMsg" message */
-func (m *model) editEntry() (tea.Model, tea.Cmd) {
+func (m *Model) editEntry() (tea.Model, tea.Cmd) {
 	currentEntryId := m.currentEntryId
-	entry, err := m.readEntryById(currentEntryId)
+	entry, err := db.readEntry(currentEntryId)
 	if err != nil {
 		m.err = err
 		return m, nil
@@ -50,7 +50,7 @@ func (m *model) editEntry() (tea.Model, tea.Cmd) {
 }
 
 /* Gets the contents of the file at the current temporary file location and saves it to the database */
-func (m *model) persistEntry() tea.Cmd {
+func (m *Model) persistEntry() tea.Cmd {
 	file, err := os.Open(m.currentEntryFilePath)
 	if err != nil {
 		m.err = err
@@ -65,7 +65,7 @@ func (m *model) persistEntry() tea.Cmd {
 		return nil
 	}
 
-	err = m.updateEntryText(m.currentEntryId, string(content))
+	err = db.updateEntryText(m.currentEntryId, string(content))
 	if err != nil {
 		m.err = err
 		return nil

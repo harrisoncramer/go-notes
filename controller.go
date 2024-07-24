@@ -6,7 +6,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-func (m model) getController(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) getController(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch m.view {
 	case addEntryView:
 		return m.createEntryController(msg)
@@ -22,7 +22,7 @@ func (m model) getController(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 /* The update function is responsible for getting a message from the Init function, and updating state in the model */
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case editorFinishedMsg:
 		return m, m.persistEntry()
@@ -31,7 +31,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case dataLoaded:
 		m.cursor.idx = 0
-		m.state = state{}
+		m.state = State{}
 		switch data := msg.data.(type) {
 		case []Entry:
 			for _, entry := range data {
@@ -54,7 +54,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 /* The main controller is the root of the application */
-func (m model) mainController(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) mainController(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -80,7 +80,7 @@ func (m model) mainController(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 /* Responsible for creating new entries */
-func (m model) createEntryController(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) createEntryController(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -90,12 +90,12 @@ func (m model) createEntryController(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if title == "" {
 				return m, Quitter
 			}
-			id, err := m.createEntry(title, "")
+			entry, err := db.createEntry(title, "")
 			if err != nil {
 				m.err = err
 				return m, nil
 			}
-			m.currentEntryId = id
+			m.currentEntryId = entry.Id
 			m.textInput.SetValue("")
 			return m.editEntry()
 		case tea.KeyEsc:
@@ -109,7 +109,7 @@ func (m model) createEntryController(msg tea.Msg) (tea.Model, tea.Cmd) {
 }
 
 /* Responsible for all update and delete operations on existing entries */
-func (m model) editEntryController(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) editEntryController(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
@@ -130,7 +130,7 @@ func (m model) editEntryController(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m model) settingsController(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) settingsController(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
 		switch msg.Type {
@@ -153,7 +153,7 @@ func (m model) settingsController(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-func (m model) editSettingsController(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m Model) editSettingsController(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -164,7 +164,7 @@ func (m model) editSettingsController(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if value == "" {
 				return m, m.changeView(mainView)
 			}
-			_, err := m.updateSetting(key, value)
+			_, err := db.updateSetting(key, value)
 			if err != nil {
 				m.err = err
 				return m, nil
@@ -185,23 +185,23 @@ func (m model) editSettingsController(msg tea.Msg) (tea.Model, tea.Cmd) {
 /*** Helpers 🤝 */
 /****************/
 
-func (m model) handleCtrlC() (model, tea.Cmd) {
+func (m Model) handleCtrlC() (Model, tea.Cmd) {
 	return m, Quitter
 }
 
-func (m *model) handleUpKey() {
+func (m *Model) handleUpKey() {
 	if m.cursor.idx > 0 {
 		m.cursor.idx--
 	}
 }
 
-func (m *model) handleDownKey() {
+func (m *Model) handleDownKey() {
 	if m.cursor.idx < len(m.state.entries)-1 {
 		m.cursor.idx++
 	}
 }
 
-func (m *model) changeView(view View) tea.Cmd {
+func (m *Model) changeView(view View) tea.Cmd {
 	m.view = view
 	return m.loadData(view)
 }
@@ -210,7 +210,7 @@ type dataLoader interface{}
 type dataLoaded struct{ data dataLoader }
 
 /* Loads the data required for the view and returns it in the dataLoaded message */
-func (m *model) loadData(view View) tea.Cmd {
+func (m *Model) loadData(view View) tea.Cmd {
 	return func() tea.Msg {
 		switch view {
 		case addEntryView, settingsEditorView:
@@ -218,13 +218,13 @@ func (m *model) loadData(view View) tea.Cmd {
 		case mainView:
 			return dataLoaded{data: initialChoices}
 		case settingsView:
-			settings, err := m.readAllSettings()
+			settings, err := db.readAllSettings()
 			if err != nil {
 				m.err = err
 			}
 			return dataLoaded{data: settings}
 		case editEntryView:
-			entries, err := m.readAllEntries()
+			entries, err := db.readAllEntries()
 			if err != nil {
 				m.err = err
 			}
