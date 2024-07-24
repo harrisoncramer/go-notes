@@ -35,7 +35,6 @@ type Model struct {
 	err                  error
 	state                State
 	textInput            textinput.Model
-	dbName               string
 	currentEntryId       int64
 	currentEntryFilePath string
 	goHome               bool
