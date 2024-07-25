@@ -20,15 +20,14 @@ type Setting struct {
 }
 
 type Database interface {
-	readAllEntries() ([]Entry, error)
-	createEntry(title string, content string) (Entry, error)
-	readEntry(id int64) (Entry, error)
-	updateEntryText(id int64, content string) (Entry, error)
-	renameEntry(id int64, title string) (Entry, error)
-	readAllSettings() ([]Setting, error)
-	updateSetting(key string, value string) (Setting, error)
-	getName() string
-	initStorage() error
+	ReadAllEntries() ([]Entry, error)
+	CreateEntry(title string, content string) (Entry, error)
+	ReadEntry(id int64) (Entry, error)
+	UpdateEntryText(id int64, content string) (Entry, error)
+	RenameEntry(id int64, title string) (Entry, error)
+	ReadAllSettings() ([]Setting, error)
+	UpdateSetting(key string, value string) (Setting, error)
+	GetName() string
 }
 
 type SqlLite struct {
@@ -37,7 +36,7 @@ type SqlLite struct {
 }
 
 /* Initializes the database and all tables */
-func createDb() (Database, error) {
+func InitSqliteDb() (Database, error) {
 	user, err := user.Current()
 	if err != nil {
 		return nil, err
@@ -57,11 +56,7 @@ func createDb() (Database, error) {
 
 	db.conn = conn
 
-	return db, nil
-}
-
-func (db SqlLite) initStorage() error {
-	_, err := db.conn.Exec(`
+	_, err = db.conn.Exec(`
       CREATE TABLE IF NOT EXISTS entries (
         id integer primary key autoincrement,
         title TEXT,
@@ -70,7 +65,7 @@ func (db SqlLite) initStorage() error {
     `)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	_, err = db.conn.Exec(`
@@ -80,7 +75,7 @@ func (db SqlLite) initStorage() error {
       );
     `)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	_, err = db.conn.Exec(`
@@ -90,19 +85,19 @@ func (db SqlLite) initStorage() error {
   `)
 
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	return nil
+	return db, nil
 }
 
 /* Returns the name of the database */
-func (db SqlLite) getName() string {
+func (db SqlLite) GetName() string {
 	return db.name
 }
 
 /* Reads all entries from the SQL database */
-func (db SqlLite) readAllEntries() ([]Entry, error) {
+func (db SqlLite) ReadAllEntries() ([]Entry, error) {
 	rows, err := db.conn.Query("SELECT id, title FROM entries")
 	if err != nil {
 		return nil, err
@@ -124,28 +119,28 @@ func (db SqlLite) readAllEntries() ([]Entry, error) {
 }
 
 /* Adds a record to the SQL database */
-func (db SqlLite) createEntry(title string, content string) (Entry, error) {
+func (db SqlLite) CreateEntry(title string, content string) (Entry, error) {
 	result, err := db.conn.Exec("INSERT INTO entries(title, content) VALUES(?, ?)", title, content)
 	if err != nil {
 		return Entry{}, err
 	}
 
 	id, _ := result.LastInsertId()
-	return db.readEntry(id)
+	return db.ReadEntry(id)
 }
 
 /* Updates an entry's (by ID) text */
-func (db SqlLite) updateEntryText(id int64, text string) (Entry, error) {
+func (db SqlLite) UpdateEntryText(id int64, text string) (Entry, error) {
 	_, err := db.conn.Exec("UPDATE entries SET content = ? WHERE id = ?", text, id)
 	if err != nil {
 		return Entry{}, err
 	}
 
-	return db.readEntry(id)
+	return db.ReadEntry(id)
 }
 
 /* Reads an entry from the database by it's ID */
-func (db SqlLite) readEntry(id int64) (Entry, error) {
+func (db SqlLite) ReadEntry(id int64) (Entry, error) {
 	var entry Entry
 	err := db.conn.QueryRow("SELECT id, title, content FROM entries WHERE id = ?", id).Scan(&entry.Id, &entry.Title, &entry.Content)
 	if err != nil {
@@ -156,16 +151,16 @@ func (db SqlLite) readEntry(id int64) (Entry, error) {
 }
 
 /* Renames an entry's (by ID) title */
-func (db SqlLite) renameEntry(id int64, title string) (Entry, error) {
+func (db SqlLite) RenameEntry(id int64, title string) (Entry, error) {
 	_, err := db.conn.Exec("UPDATE entries SET title = ? WHERE id = ?", title, id)
 	if err != nil {
 		return Entry{}, err
 	}
 
-	return db.readEntry(id)
+	return db.ReadEntry(id)
 }
 
-func (db SqlLite) readAllSettings() ([]Setting, error) {
+func (db SqlLite) ReadAllSettings() ([]Setting, error) {
 	rows, err := db.conn.Query("SELECT key, value FROM settings")
 	if err != nil {
 		return nil, err
@@ -186,7 +181,7 @@ func (db SqlLite) readAllSettings() ([]Setting, error) {
 	return results, nil
 }
 
-func (db SqlLite) updateSetting(key string, value string) (Setting, error) {
+func (db SqlLite) UpdateSetting(key string, value string) (Setting, error) {
 	_, err := db.conn.Exec("UPDATE settings SET value = ? WHERE key = ?", value, key)
 	if err != nil {
 		return Setting{}, err
