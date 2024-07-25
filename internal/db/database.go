@@ -1,4 +1,4 @@
-package main
+package db
 
 import (
 	"database/sql"
@@ -7,6 +7,17 @@ import (
 	"os"
 	"os/user"
 )
+
+type Entry struct {
+	Id      int64  `db:"id"`
+	Title   string `db:"title"`
+	Content string `db:"string"`
+}
+
+type Setting struct {
+	Key   string `db:"key"`
+	Value string `db:"value"`
+}
 
 type Database interface {
 	readAllEntries() ([]Entry, error)
