@@ -6,11 +6,13 @@ It writes the files to a sqlite3 database directly from the terminal, using an e
 
 ## Installation
 
-Go Install: `go install github.com/harrisoncramer/go-notes/cmd/go-notes@latest`
-
-## Quick Start
-
+```bash
+go install github.com/harrisoncramer/go-notes/cmd/go-notes@latest`
 ```
+
+## Usage
+
+```bash
 $ go build .
 $ ./go-notes "My Diary"
 ```
