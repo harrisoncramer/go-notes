@@ -26,7 +26,7 @@ func (m *Model) editEntry() (tea.Model, tea.Cmd) {
 		editor = "vim"
 	}
 
-	tmpfile, err := os.CreateTemp("", "-entry.md")
+	tmpfile, err := os.CreateTemp("", "entry.md")
 	if err != nil {
 		m.err = err
 		return m, nil
