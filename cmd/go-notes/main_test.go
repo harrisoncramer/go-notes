@@ -4,6 +4,7 @@ import (
 	"io"
 	"testing"
 
+	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/x/exp/teatest"
 	"github.com/harrisoncramer/go-notes/internal/db"
 )
@@ -50,6 +51,23 @@ func TestUp(t *testing.T) {
 	tm.Type("j")
 	tm.Type("j")
 	tm.Type("k")
+	tm.Quit()
+	out, err := io.ReadAll(tm.FinalOutput(t))
+	if err != nil {
+		t.Error(err)
+	}
+	teatest.RequireEqualOutput(t, out)
+}
+
+/* Tests that you can type an entry */
+func TestTypeNewEntry(t *testing.T) {
+	tm := commonSetup(t)
+	enterKey := tea.KeyMsg(tea.Key{
+		Type: tea.KeyEnter,
+	})
+
+	tm.Send(enterKey)
+	tm.Type("Some new entry...")
 	tm.Quit()
 	out, err := io.ReadAll(tm.FinalOutput(t))
 	if err != nil {
