@@ -9,77 +9,14 @@ import (
 	"github.com/harrisoncramer/go-notes/internal/db"
 )
 
-func commonSetup(t *testing.T) *teatest.TestModel {
-	testDb := TestDb{}
-	m := initialModel(testDb)
-	tm := teatest.NewTestModel(
-		t,
-		m,
-		teatest.WithInitialTermSize(300, 100),
-	)
-
-	return tm
-}
-
-/* Tests that the inital view renders correctly */
-func TestMain(t *testing.T) {
-	tm := commonSetup(t)
-	tm.Quit()
-	out, err := io.ReadAll(tm.FinalOutput(t))
-	if err != nil {
-		t.Error(err)
-	}
-	teatest.RequireEqualOutput(t, out)
-}
-
-/* Tests that you can navigate downwards */
-func TestDown(t *testing.T) {
-	tm := commonSetup(t)
-	tm.Type("j")
-	tm.Type("j")
-	tm.Quit()
-	out, err := io.ReadAll(tm.FinalOutput(t))
-	if err != nil {
-		t.Error(err)
-	}
-	teatest.RequireEqualOutput(t, out)
-}
-
-/* Tests that you can navigate downwards */
-func TestUp(t *testing.T) {
-	tm := commonSetup(t)
-	tm.Type("j")
-	tm.Type("j")
-	tm.Type("k")
-	tm.Quit()
-	out, err := io.ReadAll(tm.FinalOutput(t))
-	if err != nil {
-		t.Error(err)
-	}
-	teatest.RequireEqualOutput(t, out)
-}
-
-/* Tests that you can type an entry */
-func TestTypeNewEntry(t *testing.T) {
-	tm := commonSetup(t)
-	enterKey := tea.KeyMsg(tea.Key{
-		Type: tea.KeyEnter,
-	})
-
-	tm.Send(enterKey)
-	tm.Type("Some new entry...")
-	tm.Quit()
-	out, err := io.ReadAll(tm.FinalOutput(t))
-	if err != nil {
-		t.Error(err)
-	}
-	teatest.RequireEqualOutput(t, out)
-}
-
 type TestDb struct{}
 
 func (t TestDb) ReadAllEntries() ([]db.Entry, error) {
-	return []db.Entry{}, nil
+	return []db.Entry{
+		{Title: "Fake title #1", Content: "Fake content #1", Id: 1},
+		{Title: "Fake title #2", Content: "Fake content #2", Id: 2},
+		{Title: "Fake title #3", Content: "Fake content #3", Id: 3},
+	}, nil
 }
 func (t TestDb) CreateEntry(title string, content string) (db.Entry, error) {
 	return db.Entry{}, nil
@@ -101,4 +38,88 @@ func (t TestDb) UpdateSetting(key string, value string) (db.Setting, error) {
 }
 func (t TestDb) GetName() string {
 	return "TestDb"
+}
+
+/* Tests that the inital view renders correctly */
+func TestMain(t *testing.T) {
+	tm := commonSetup(t)
+	tm.Quit()
+	out, err := io.ReadAll(tm.FinalOutput(t))
+	if err != nil {
+		t.Error(err)
+	}
+	teatest.RequireEqualOutput(t, out)
+}
+
+/* Tests that you can navigate downwards */
+func TestDown(t *testing.T) {
+	tm := commonSetup(t)
+	tm.Send(k(tea.KeyDown))
+	tm.Send(k(tea.KeyDown))
+	tm.Quit()
+	out, err := io.ReadAll(tm.FinalOutput(t))
+	if err != nil {
+		t.Error(err)
+	}
+	teatest.RequireEqualOutput(t, out)
+}
+
+/* Tests that you can navigate downwards */
+func TestUp(t *testing.T) {
+	tm := commonSetup(t)
+	tm.Send(k(tea.KeyDown))
+	tm.Send(k(tea.KeyDown))
+	tm.Send(k(tea.KeyUp))
+	tm.Quit()
+	out, err := io.ReadAll(tm.FinalOutput(t))
+	if err != nil {
+		t.Error(err)
+	}
+	teatest.RequireEqualOutput(t, out)
+}
+
+/* Tests that you can type an entry */
+func TestTypeNewEntry(t *testing.T) {
+	tm := commonSetup(t)
+	tm.Send(k(tea.KeyEnter))
+	tm.Type("Some new entry...")
+	tm.Quit()
+	out, err := io.ReadAll(tm.FinalOutput(t))
+	if err != nil {
+		t.Error(err)
+	}
+	teatest.RequireEqualOutput(t, out)
+}
+
+/* Tests that you can open and navigate around to edit existing entries */
+func TestEditExistingEntries(t *testing.T) {
+	tm := commonSetup(t)
+	tm.Send(k(tea.KeyDown))
+	tm.Send(k(tea.KeyEnter))
+	tm.Send(k(tea.KeyEnter)) // TODO: Why does this require two keypresses?
+	tm.Quit()
+	out, err := io.ReadAll(tm.FinalOutput(t))
+	if err != nil {
+		t.Error(err)
+	}
+	teatest.RequireEqualOutput(t, out)
+}
+
+/* Helpers and variables 🤝 */
+func commonSetup(t *testing.T) *teatest.TestModel {
+	testDb := TestDb{}
+	m := initialModel(testDb)
+	tm := teatest.NewTestModel(
+		t,
+		m,
+		teatest.WithInitialTermSize(300, 100),
+	)
+
+	return tm
+}
+
+func k(key tea.KeyType) tea.KeyMsg {
+	return tea.KeyMsg(tea.Key{
+		Type: key,
+	})
 }
