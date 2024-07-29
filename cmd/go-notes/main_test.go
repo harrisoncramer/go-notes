@@ -8,7 +8,7 @@ import (
 	"github.com/harrisoncramer/go-notes/internal/db"
 )
 
-func TestMain(t *testing.T) {
+func commonSetup(t *testing.T) *teatest.TestModel {
 	testDb := TestDb{}
 	m := initialModel(testDb)
 	tm := teatest.NewTestModel(
@@ -17,9 +17,41 @@ func TestMain(t *testing.T) {
 		teatest.WithInitialTermSize(300, 100),
 	)
 
+	return tm
+}
+
+/* Tests that the inital view renders correctly */
+func TestMain(t *testing.T) {
+	tm := commonSetup(t)
 	tm.Quit()
 	out, err := io.ReadAll(tm.FinalOutput(t))
+	if err != nil {
+		t.Error(err)
+	}
+	teatest.RequireEqualOutput(t, out)
+}
 
+/* Tests that you can navigate downwards */
+func TestDown(t *testing.T) {
+	tm := commonSetup(t)
+	tm.Type("j")
+	tm.Type("j")
+	tm.Quit()
+	out, err := io.ReadAll(tm.FinalOutput(t))
+	if err != nil {
+		t.Error(err)
+	}
+	teatest.RequireEqualOutput(t, out)
+}
+
+/* Tests that you can navigate downwards */
+func TestUp(t *testing.T) {
+	tm := commonSetup(t)
+	tm.Type("j")
+	tm.Type("j")
+	tm.Type("k")
+	tm.Quit()
+	out, err := io.ReadAll(tm.FinalOutput(t))
 	if err != nil {
 		t.Error(err)
 	}
