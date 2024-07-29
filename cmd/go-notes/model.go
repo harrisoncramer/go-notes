@@ -48,13 +48,17 @@ var editEntryChoice = db.Entry{Title: "Edit Entry"}
 var settingsEntryChoice = db.Entry{Title: "Settings"}
 var initialChoices = []db.Entry{addEntryChoice, editEntryChoice, settingsEntryChoice}
 
-func initialModel() Model {
+/* Text input component */
+func makeTextInput() textinput.Model {
+	ti := textinput.New()
+	ti.Placeholder = "Learning about Go"
+	ti.Focus()
+	ti.CharLimit = 156
+	ti.Width = 60
+	return ti
+}
 
-	database, err := db.InitSqliteDb()
-	if err != nil {
-		return Model{err: err}
-	}
-
+func initialModel(database db.Database) Model {
 	m := Model{
 		state: State{
 			entries: initialChoices,
@@ -63,13 +67,6 @@ func initialModel() Model {
 		db:   database,
 	}
 
-	/* Text input component */
-	ti := textinput.New()
-	ti.Placeholder = "Learning about Go"
-	ti.Focus()
-	ti.CharLimit = 156
-	ti.Width = 60
-	m.textInput = ti
-
+	m.textInput = makeTextInput()
 	return m
 }
